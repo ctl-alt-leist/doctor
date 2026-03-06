@@ -1,0 +1,294 @@
+/*
+ * Layout Stylesheet
+ * Implements page geometry, margins, and spatial organization from layout.toml
+ */
+
+/* Page container */
+.page {
+  max-width: var(--page-max-width);
+  margin: 0 auto;
+  padding: var(--page-margin);
+  background: var(--background);
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+  min-height: 100vh;
+}
+
+/* Single column layout (default) */
+.layout-single-column {
+  display: block;
+}
+
+/* Two column layout */
+.layout-two-column {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--column-gap);
+  align-items: start;
+}
+
+.layout-two-column h1,
+.layout-two-column .document-title,
+.layout-two-column .document-subtitle,
+.layout-two-column .document-authors,
+.layout-two-column .document-date,
+.layout-two-column .abstract {
+  grid-column: 1 / -1; /* Span both columns */
+}
+
+/* Headers and footers */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 2rem;
+  font-family: var(--font-sans);
+  font-size: var(--size-small);
+  color: var(--text-secondary);
+}
+
+.page-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-top: 1px solid var(--border);
+  margin-top: 2rem;
+  font-family: var(--font-sans);
+  font-size: var(--size-small);
+  color: var(--text-secondary);
+}
+
+.page-number {
+  font-weight: 600;
+}
+
+/* Title page layout */
+.title-page {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 80vh;
+  page-break-after: always;
+}
+
+.title-page .document-title {
+  font-size: var(--size-Huge);
+  margin: 2rem 0;
+}
+
+.title-page .document-subtitle {
+  font-size: var(--size-LARGE);
+  margin: 1rem 0 3rem 0;
+}
+
+.title-page .document-authors {
+  font-size: var(--size-Large);
+  margin: 2rem 0;
+}
+
+.title-page .document-date {
+  font-size: var(--size-large);
+  margin: 1rem 0;
+}
+
+/* Table of contents */
+.toc {
+  margin: 2rem 0;
+  font-family: var(--font-sans);
+}
+
+.toc h2 {
+  margin-bottom: 1rem;
+}
+
+.toc ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.toc li {
+  margin: 0.5rem 0;
+  display: flex;
+  justify-content: space-between;
+}
+
+.toc a {
+  text-decoration: none;
+  flex-grow: 1;
+}
+
+.toc a:hover {
+  text-decoration: underline;
+}
+
+.toc .page-number {
+  margin-left: 1rem;
+  color: var(--text-secondary);
+}
+
+/* Nested TOC entries */
+.toc ul ul {
+  padding-left: 1.5rem;
+}
+
+.toc ul ul li {
+  font-size: var(--size-small);
+  margin: 0.25rem 0;
+}
+
+/* Sidebar TOC (for web) */
+.layout-with-sidebar {
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  gap: 2rem;
+  max-width: 1200px;
+}
+
+.sidebar {
+  position: sticky;
+  top: 2rem;
+  height: fit-content;
+  background: var(--background-alt);
+  padding: 1.5rem;
+  border-radius: 8px;
+  font-size: var(--size-small);
+}
+
+.sidebar .toc {
+  margin: 0;
+}
+
+.sidebar .toc h2 {
+  font-size: var(--size-normal);
+  margin-bottom: 0.5rem;
+}
+
+.main-content {
+  min-width: 0; /* Prevent overflow */
+}
+
+/* Section breaks */
+.section-break {
+  page-break-before: always;
+  margin-top: 4rem;
+}
+
+.chapter-break {
+  page-break-before: always;
+  margin-top: 6rem;
+}
+
+/* Spacing utilities */
+.spacing-compact {
+  --paragraph-spacing: 0.25em;
+  --section-spacing: 1.5em;
+}
+
+.spacing-normal {
+  --paragraph-spacing: 0.5em;
+  --section-spacing: 2em;
+}
+
+.spacing-relaxed {
+  --paragraph-spacing: 1em;
+  --section-spacing: 3em;
+}
+
+/* Float clearing */
+.clearfix::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+/* Responsive layout */
+@media screen and (max-width: 1024px) {
+  .layout-with-sidebar {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .sidebar {
+    position: static;
+    order: 1;
+  }
+  
+  .main-content {
+    order: 2;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .page {
+    padding: 1rem;
+    margin: 0;
+    box-shadow: none;
+  }
+  
+  .layout-two-column {
+    display: block;
+  }
+  
+  .page-header,
+  .page-footer {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .title-page {
+    min-height: 60vh;
+  }
+  
+  .title-page .document-title {
+    font-size: var(--size-LARGE);
+  }
+  
+  .title-page .document-subtitle {
+    font-size: var(--size-Large);
+  }
+}
+
+/* Print-specific layout adjustments */
+@media print {
+  .page {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+    min-height: 0;
+  }
+  
+  .sidebar {
+    display: none;
+  }
+  
+  .layout-with-sidebar {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Document type layouts */
+.document-type-article .page {
+  --page-max-width: 700px;
+}
+
+.document-type-article .title-page {
+  min-height: auto;
+  page-break-after: auto;
+}
+
+.document-type-book .page {
+  --page-max-width: 800px;
+}
+
+.document-type-thesis .page {
+  --page-max-width: 850px;
+  --page-margin: 1.5in;
+}
+
+.document-type-thesis .title-page {
+  min-height: 100vh;
+}

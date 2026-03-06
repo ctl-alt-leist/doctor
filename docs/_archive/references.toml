@@ -1,0 +1,493 @@
+# Bibliography for Non-Local Quantum Field Theory
+# Organized chronologically
+
+[planck-1899]
+type = "article"
+author = "Max Planck"
+title = "Über irreversible Strahlungsvorgänge"
+journal = "Sitzungsberichte der Königlich Preußischen Akademie der Wissenschaften zu Berlin"
+volume = 5
+pages = "440-480"
+year = 1899
+
+[fermi-1934]
+type = "article"
+author = "Enrico Fermi"
+title = "Versuch einer Theorie der β-Strahlen"
+journal = "Zeitschrift für Physik"
+volume = 88
+pages = "161-177"
+year = 1934
+
+[eddington-1935-a]
+type = "book"
+author = "Arthur Eddington"
+title = "New Pathways in Science"
+publisher = "Cambridge University Press"
+year = 1935
+
+[wheeler-1957]
+type = "article"
+author = "John Archibald Wheeler"
+title = "On the nature of quantum geometrodynamics"
+journal = "Annals of Physics"
+volume = 2
+pages = "604-614"
+year = 1957
+
+[heisenberg-1958]
+type = "article"
+author = "Werner Heisenberg"
+title = "Der Teil und das Ganze"
+publisher = "R. Piper & Co."
+year = 1958
+
+[weinberg-1967]
+type = "article"
+author = "Steven Weinberg"
+title = "A Model of Leptons"
+journal = "Physical Review Letters"
+volume = 19
+pages = "1264-1266"
+year = 1967
+
+[hawking-1971-a]
+type = "article"
+author = "Stephen W. Hawking"
+title = "Gravitational Radiation from Colliding Black Holes"
+journal = "Physical Review Letters"
+volume = 26
+pages = "1344-1346"
+year = 1971
+
+[bekenstein-1973-a]
+type = "article"
+author = "Jacob D. Bekenstein"
+title = "Black Holes and Entropy"
+journal = "Physical Review D"
+volume = 7
+pages = "2333-2346"
+year = 1973
+doi = "10.1103/PhysRevD.7.2333"
+
+[wilson-1974]
+type = "article"
+author = "Kenneth G. Wilson"
+title = "Confinement of quarks"
+journal = "Physical Review D"
+volume = 10
+pages = "2445-2459"
+year = 1974
+
+[hawking-1975-a]
+type = "article"
+author = "Stephen W. Hawking"
+title = "Particle Creation by Black Holes"
+journal = "Communications in Mathematical Physics"
+volume = 43
+pages = "199-220"
+year = 1975
+doi = "10.1007/BF02345020"
+
+[unruh-1976-a]
+type = "article"
+author = "William G. Unruh"
+title = "Notes on Black Hole Evaporation"
+journal = "Physical Review D"
+volume = 14
+pages = "870-892"
+year = 1976
+
+[weinberg-1979]
+type = "article"
+author = "Steven Weinberg"
+title = "Phenomenological Lagrangians"
+journal = "Physica A"
+volume = 96
+pages = "327-340"
+year = 1979
+
+[georgi-1984]
+type = "article"
+author = "Howard Georgi"
+title = "Weak Interactions and Modern Particle Theory"
+publisher = "Benjamin/Cummings"
+year = 1984
+
+[bombelli-1986]
+type = "article"
+author = "Luca Bombelli, Rabinder K. Koul, Joohan Lee, and Rafael D. Sorkin"
+title = "Quantum source of entropy for black holes"
+journal = "Physical Review D"
+volume = 34
+pages = "373-383"
+year = 1986
+
+[page-1993-a]
+type = "article"
+author = "Don N. Page"
+title = "Information in Black Hole Radiation"
+journal = "Physical Review Letters"
+volume = 71
+pages = "3743-3746"
+year = 1993
+arxiv = "hep-th/9306083"
+
+[srednicki-1993]
+type = "article"
+author = "Mark Srednicki"
+title = "Entropy and area"
+journal = "Physical Review Letters"
+volume = 71
+pages = "666-669"
+year = 1993
+arxiv = "hep-th/9303048"
+
+[susskind-1993-a]
+type = "article"
+author = "Leonard Susskind"
+title = "String Theory and the Principle of Black Hole Complementarity"
+journal = "Physics Letters B"
+volume = 297
+pages = "61-64"
+year = 1993
+arxiv = "hep-th/9307168"
+
+[thooft-1993-a]
+type = "article"
+author = "Gerard 't Hooft"
+title = "Dimensional Reduction in Quantum Gravity"
+journal = "Salamfest"
+pages = "284-296"
+year = 1993
+arxiv = "gr-qc/9310026"
+
+[jacobson-1995]
+type = "article"
+author = "Ted Jacobson"
+title = "Thermodynamics of spacetime: the Einstein equation of state"
+journal = "Physical Review Letters"
+volume = 75
+pages = "1260-1263"
+year = 1995
+arxiv = "gr-qc/9504004"
+
+[peskin-schroeder-1995]
+type = "book"
+author = "Michael E. Peskin and Daniel V. Schroeder"
+title = "An Introduction to Quantum Field Theory"
+publisher = "Addison-Wesley"
+year = 1995
+
+[susskind-1995-a]
+type = "article"
+author = "Leonard Susskind"
+title = "The World as a Hologram"
+journal = "Journal of Mathematical Physics"
+volume = 36
+pages = "6377-6396"
+year = 1995
+arxiv = "hep-th/9409089"
+
+[susskind-1998]
+type = "article"
+author = "Leonard Susskind"
+title = "The World as a Hologram"
+journal = "Journal of Mathematical Physics"
+volume = 36
+pages = "6377-6396"
+year = 1995
+arxiv = "hep-th/9409089"
+
+[weinberg-1996]
+type = "article"
+author = "Steven Weinberg"
+title = "What is quantum field theory, and what did we think it is?"
+arxiv = "hep-th/9702027"
+year = 1996
+
+[gubser-1998]
+type = "article"
+author = "Steven S. Gubser, Igor R. Klebanov, and Alexander M. Polyakov"
+title = "Gauge theory correlators from non-critical string theory"
+journal = "Physics Letters B"
+volume = 428
+pages = "105-114"
+year = 1998
+arxiv = "hep-th/9802109"
+
+[maldacena-1997]
+type = "article"
+author = "Juan Maldacena"
+title = "The Large N Limit of Superconformal Field Theories and Supergravity"
+journal = "Advances in Theoretical and Mathematical Physics"
+volume = 2
+pages = "231-252"
+year = 1998
+arxiv = "hep-th/9711200"
+
+[maldacena-1999-a]
+type = "article"
+author = "Juan Maldacena"
+title = "The Large N Limit of Superconformal Field Theories and Supergravity"
+journal = "Advances in Theoretical and Mathematical Physics"
+volume = 2
+pages = "231-252"
+year = 1998
+arxiv = "hep-th/9711200"
+
+[wheeler-1998-a]
+type = "article"
+author = "John Archibald Wheeler"
+title = "Geons, Black Holes, and Quantum Foam"
+journal = "Princeton University Press"
+year = 1998
+
+[witten-1998]
+type = "article"
+author = "Edward Witten"
+title = "Anti-de Sitter space and holography"
+journal = "Advances in Theoretical and Mathematical Physics"
+volume = 2
+pages = "253-291"
+year = 1998
+arxiv = "hep-th/9802150"
+
+[freedman-1999]
+type = "article"
+author = "Daniel Z. Freedman, Samir D. Mathur, Alec Matusis, and Leonardo Rastelli"
+title = "Correlation functions in the CFT(d)/AdS(d+1) correspondence"
+journal = "Nuclear Physics B"
+volume = 546
+pages = "96-118"
+year = 1999
+arxiv = "hep-th/9804058"
+
+[aharony-2000]
+type = "article"
+author = "Ofer Aharony, Steven S. Gubser, Juan Maldacena, Hirosi Ooguri, and Yaron Oz"
+title = "Large N field theories, string theory and gravity"
+journal = "Physics Reports"
+volume = 323
+pages = "183-386"
+year = 2000
+arxiv = "hep-th/9905111"
+
+[nielsen-chuang-2000]
+type = "book"
+author = "Michael A. Nielsen and Isaac L. Chuang"
+title = "Quantum Computation and Quantum Information"
+publisher = "Cambridge University Press"
+year = 2000
+
+[bousso-2002-a]
+type = "article"
+author = "Raphael Bousso"
+title = "The Holographic Principle"
+journal = "Reviews of Modern Physics"
+volume = 74
+pages = "825-874"
+year = 2002
+arxiv = "hep-th/0203101"
+
+[karch-2006]
+type = "article"
+author = "Andreas Karch and Emanuel Katz"
+title = "Adding flavor to AdS/CFT"
+journal = "Journal of High Energy Physics"
+volume = 2002
+number = 6
+pages = "043"
+year = 2002
+arxiv = "hep-th/0205236"
+
+[zurek-2003]
+type = "article"
+author = "Wojciech H. Zurek"
+title = "Decoherence, einselection, and the quantum origins of the classical"
+journal = "Reviews of Modern Physics"
+volume = 75
+pages = "715-775"
+year = 2003
+arxiv = "quant-ph/0105127"
+
+[rovelli-2004]
+type = "book"
+author = "Carlo Rovelli"
+title = "Quantum Gravity"
+publisher = "Cambridge University Press"
+year = 2004
+
+[erlich-2005]
+type = "article"
+author = "Joshua Erlich, Emanuel Katz, Dam T. Son, and Mikhail A. Stephanov"
+title = "QCD and a holographic model of hadrons"
+journal = "Physical Review Letters"
+volume = 95
+pages = "261602"
+year = 2005
+arxiv = "hep-ph/0501128"
+
+[rothe-2005]
+type = "book"
+author = "Heinz J. Rothe"
+title = "Lattice Gauge Theories: An Introduction"
+publisher = "World Scientific"
+year = 2005
+
+[ryu-2006]
+type = "article"
+author = "Shinsei Ryu and Tadashi Takayanagi"
+title = "Holographic derivation of entanglement entropy from the anti-de Sitter space/conformal field theory correspondence"
+journal = "Physical Review Letters"
+volume = 96
+pages = "181602"
+year = 2006
+arxiv = "hep-th/0603001"
+
+[hubeny-2007]
+type = "article"
+author = "Veronika E. Hubeny, Mukund Rangamani, and Tadashi Takayanagi"
+title = "A covariant holographic entanglement entropy proposal"
+journal = "Journal of High Energy Physics"
+volume = 2007
+number = 7
+pages = "062"
+year = 2007
+arxiv = "0705.0016"
+
+[susskind-2008-a]
+type = "book"
+author = "Leonard Susskind"
+title = "The Black Hole War"
+publisher = "Little, Brown and Company"
+year = 2008
+
+[hartnoll-2009]
+type = "article"
+author = "Sean A. Hartnoll"
+title = "Lectures on holographic methods for condensed matter physics"
+journal = "Classical and Quantum Gravity"
+volume = 26
+pages = "224002"
+year = 2009
+arxiv = "0903.3246"
+
+[eisert-2010]
+type = "article"
+author = "Jens Eisert, Marcus Cramer, and Martin B. Plenio"
+title = "Colloquium: Area laws for the entanglement entropy"
+journal = "Reviews of Modern Physics"
+volume = 82
+pages = "277-306"
+year = 2010
+arxiv = "0808.3773"
+
+[van-raamsdonk-2010]
+type = "article"
+author = "Mark Van Raamsdonk"
+title = "Building up spacetime with quantum entanglement"
+journal = "General Relativity and Gravitation"
+volume = 42
+pages = "2323-2329"
+year = 2010
+arxiv = "1005.3035"
+
+[ashtekar-2011]
+type = "article"
+author = "Abhay Ashtekar"
+title = "Introduction to loop quantum gravity"
+arxiv = "1201.4598"
+year = 2011
+
+[verlinde-2011]
+type = "article"
+author = "Erik Verlinde"
+title = "On the origin of gravity and the laws of Newton"
+journal = "Journal of High Energy Physics"
+volume = 2011
+number = 4
+pages = "029"
+year = 2011
+arxiv = "1001.0785"
+
+[ambjorn-2012]
+type = "book"
+author = "Jan Ambjørn, Jerzy Jurkiewicz, and Renate Loll"
+title = "Causal Dynamical Triangulations and the Quest for Quantum Gravity"
+publisher = "Springer"
+year = 2012
+
+[reuter-2012]
+type = "article"
+author = "Martin Reuter and Frank Saueressig"
+title = "Quantum Einstein Gravity"
+journal = "New Journal of Physics"
+volume = 14
+pages = "055022"
+year = 2012
+
+[almheiri-2013-a]
+type = "article"
+author = "Ahmed Almheiri and Donald Marolf and Joseph Polchinski and James Sully"
+title = "Black Holes: Complementarity or Firewalls?"
+journal = "Journal of High Energy Physics"
+volume = 2013
+number = 2
+pages = "062"
+year = 2013
+arxiv = "1207.3123"
+
+[amelino-camelia-2013]
+type = "article"
+author = "Giovanni Amelino-Camelia"
+title = "Quantum-Spacetime Phenomenology"
+journal = "Living Reviews in Relativity"
+volume = 16
+pages = "5"
+year = 2013
+
+[harlow-2013-a]
+type = "article"
+author = "Daniel Harlow"
+title = "Jerusalem Lectures on Black Holes and Quantum Information"
+journal = "Reviews of Modern Physics"
+volume = 88
+pages = "015002"
+year = 2016
+arxiv = "1409.1231"
+
+[harlow-2016]
+type = "article"
+author = "Daniel Harlow"
+title = "Jerusalem Lectures on Black Holes and Quantum Information"
+journal = "Reviews of Modern Physics"
+volume = 88
+pages = "015002"
+year = 2016
+arxiv = "1409.1231"
+
+[carroll-singh-2017]
+type = "article"
+author = "Sean M. Carroll and Ashmeet Singh"
+title = "Mad-Dog Everettianism: Quantum Mechanics at Its Most Minimal"
+journal = "arXiv preprint"
+arxiv = "1801.04018"
+year = 2018
+
+[carroll-singh-2020]
+type = "article"
+author = "Sean M. Carroll and Ashmeet Singh"
+title = "Quantum Mereology: Factorizing Hilbert Space into Subsystems with Quasi-Classical Dynamics"
+journal = "Physical Review A"
+volume = 103
+pages = "022213"
+year = 2021
+arxiv = "2005.12938"
+
+[burgess-2021]
+type = "book"
+author = "Cliff P. Burgess"
+title = "Introduction to Effective Field Theory"
+publisher = "Cambridge University Press"
+year = 2021

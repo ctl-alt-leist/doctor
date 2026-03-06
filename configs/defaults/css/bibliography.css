@@ -1,0 +1,395 @@
+/*
+ * Bibliography Stylesheet
+ * Styling for citations, references, and bibliography formatting
+ */
+
+/* Bibliography section */
+.bibliography {
+  margin: 3em 0 2em;
+  page-break-before: auto;
+}
+
+.bibliography h1,
+.bibliography h2 {
+  font-family: var(--font-sans);
+  font-size: var(--size-Large);
+  font-weight: 700;
+  margin-bottom: 1.5em;
+  border-bottom: 2px solid var(--border);
+  padding-bottom: 0.5em;
+}
+
+/* Bibliography list */
+.bibliography ul,
+.bibliography ol {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* Individual bibliography entries */
+.bibliography li,
+.bibentry {
+  margin-bottom: 1em;
+  padding-left: 2em;
+  text-indent: -2em; /* Hanging indent */
+  line-height: 1.4;
+  font-size: var(--size-small);
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+/* Bibliography entry components */
+.bibentry .author {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.bibentry .title {
+  font-style: italic;
+  color: var(--text-primary);
+}
+
+.bibentry .journal {
+  font-style: italic;
+  color: var(--text-secondary);
+}
+
+.bibentry .year {
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.bibentry .volume {
+  font-weight: 600;
+}
+
+.bibentry .pages {
+  color: var(--text-secondary);
+}
+
+.bibentry .doi {
+  color: var(--link);
+  text-decoration: none;
+}
+
+.bibentry .doi:hover {
+  text-decoration: underline;
+}
+
+.bibentry .url {
+  color: var(--link);
+  text-decoration: none;
+  word-break: break-all;
+}
+
+.bibentry .url:hover {
+  text-decoration: underline;
+}
+
+/* Citation styles */
+.citation {
+  color: var(--link);
+  text-decoration: none;
+  font-family: var(--font-sans);
+  font-size: inherit;
+}
+
+.citation:hover {
+  text-decoration: underline;
+}
+
+.citation:visited {
+  color: var(--link);
+}
+
+/* Numeric citations */
+.cite-numeric {
+  vertical-align: super;
+  font-size: var(--size-scriptsize);
+  margin: 0 1px;
+}
+
+.cite-numeric::before {
+  content: '[';
+}
+
+.cite-numeric::after {
+  content: ']';
+}
+
+/* Author-year citations */
+.cite-author-year {
+  font-size: inherit;
+}
+
+.cite-author-year .author {
+  font-weight: 500;
+}
+
+.cite-author-year .year::before {
+  content: ' (';
+}
+
+.cite-author-year .year::after {
+  content: ')';
+}
+
+/* Citation groups */
+.cite-group {
+  white-space: nowrap;
+}
+
+.cite-group .citation {
+  margin-right: 0;
+}
+
+.cite-group .citation:not(:last-child)::after {
+  content: ', ';
+  color: var(--text-primary);
+}
+
+/* Citation ranges */
+.cite-range .citation:first-child::after {
+  content: '–';
+  color: var(--text-primary);
+}
+
+.cite-range .citation:not(:first-child):not(:last-child) {
+  display: none;
+}
+
+/* Citation tooltips/previews */
+.citation-preview {
+  position: relative;
+  display: inline-block;
+}
+
+.citation-preview .preview-content {
+  visibility: hidden;
+  position: absolute;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.75em;
+  font-size: var(--size-small);
+  line-height: 1.3;
+  width: 300px;
+  max-width: 80vw;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.citation-preview:hover .preview-content {
+  visibility: visible;
+  opacity: 1;
+}
+
+.citation-preview .preview-content::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--background);
+}
+
+/* Footnote citations */
+.cite-footnote {
+  vertical-align: super;
+  font-size: var(--size-scriptsize);
+  color: var(--link);
+  text-decoration: none;
+  margin: 0 1px;
+}
+
+.cite-footnote:hover {
+  text-decoration: underline;
+}
+
+/* Bibliography styles by type */
+.bibliography.style-nature .bibentry {
+  font-size: var(--size-footnotesize);
+}
+
+.bibliography.style-nature .bibentry .title {
+  font-style: normal;
+  font-weight: 500;
+}
+
+.bibliography.style-apa .bibentry .author {
+  font-weight: normal;
+}
+
+.bibliography.style-apa .bibentry .year {
+  font-weight: 600;
+}
+
+.bibliography.style-chicago .bibentry {
+  text-indent: -0.5em;
+  padding-left: 0.5em;
+}
+
+/* Bibliography numbering */
+.bibliography ol {
+  counter-reset: bibitem;
+}
+
+.bibliography ol li {
+  counter-increment: bibitem;
+}
+
+.bibliography ol li::before {
+  content: counter(bibitem) '. ';
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-right: 0.5em;
+}
+
+/* Alphabetic bibliography labels */
+.bibliography.style-alphabetic li::before {
+  content: '[' attr(data-label) '] ';
+  font-family: var(--font-sans);
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+/* Back-references from bibliography to citations */
+.backref {
+  color: var(--text-muted);
+  font-size: var(--size-scriptsize);
+  margin-left: 0.5em;
+}
+
+.backref a {
+  color: var(--text-muted);
+  text-decoration: none;
+  margin: 0 2px;
+}
+
+.backref a:hover {
+  color: var(--link);
+  text-decoration: underline;
+}
+
+/* Multiple citation formats */
+.multicite {
+  display: inline-block;
+}
+
+.multicite .citation:not(:last-child)::after {
+  content: ', ';
+}
+
+/* DOI and URL styling */
+.doi-link, .url-link {
+  color: var(--link);
+  text-decoration: none;
+  font-family: var(--font-mono);
+  font-size: var(--size-scriptsize);
+  word-break: break-all;
+}
+
+.doi-link:hover, .url-link:hover {
+  text-decoration: underline;
+}
+
+.doi-link::before {
+  content: 'DOI: ';
+  font-family: var(--font-sans);
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+/* Responsive bibliography */
+@media screen and (max-width: 768px) {
+  .bibliography li,
+  .bibentry {
+    padding-left: 1em;
+    text-indent: -1em;
+    font-size: var(--size-footnotesize);
+  }
+  
+  .citation-preview .preview-content {
+    width: 250px;
+    font-size: var(--size-footnotesize);
+  }
+  
+  .doi-link, .url-link {
+    word-break: break-all;
+  }
+}
+
+/* Print bibliography */
+@media print {
+  .bibliography {
+    page-break-before: always;
+  }
+  
+  .bibliography li,
+  .bibentry {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  
+  .citation-preview .preview-content {
+    display: none;
+  }
+  
+  /* Print URLs */
+  .url-link::after {
+    content: ' (' attr(href) ')';
+    font-size: var(--size-tiny);
+    color: var(--text-muted);
+  }
+}
+
+/* Dark mode bibliography */
+@media (prefers-color-scheme: dark) {
+  .citation-preview .preview-content {
+    background: var(--background);
+    border-color: var(--border);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+  
+  .citation-preview .preview-content::after {
+    border-top-color: var(--background);
+  }
+}
+
+/* Accessibility improvements */
+.citation[aria-describedby] {
+  position: relative;
+}
+
+.citation:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* Bibliography entry types */
+.bibentry.article .title {
+  quotes: '"' '"';
+}
+
+.bibentry.article .title::before {
+  content: open-quote;
+}
+
+.bibentry.article .title::after {
+  content: close-quote;
+}
+
+.bibentry.book .title {
+  font-style: italic;
+}
+
+.bibentry.inproceedings .booktitle {
+  font-style: italic;
+}

@@ -1,0 +1,17 @@
+# Test Project Configuration
+
+[document]
+type = "thesis"
+title = "A Study of Quantum Field Theory"
+authors = ["Dr. Jane Smith"]
+keywords = ["quantum", "field theory", "physics", "mathematics"]
+
+[typography]
+base_size = "12px"
+
+[bibliography]
+style = "nature"
+references_file = "references.toml"
+
+[output]
+formats = ["pdf", "html"]

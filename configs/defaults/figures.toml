@@ -1,0 +1,172 @@
+# Figures and Tables Configuration
+# Image and table formatting settings
+
+[figures]
+# Figure sizing (CSS units)
+default_width = "80%"
+max_width = "100%"
+default_height = "auto"
+
+# Figure alignment
+alignment = "center"  # "left", "center", "right"
+
+# Image search paths
+image_paths = ["figures/", "images/", "assets/", "./"]
+
+# Supported image formats
+supported_formats = ["png", "jpg", "jpeg", "pdf", "svg", "eps"]
+
+# Figure numbering and referencing
+[figures.numbering]
+# Numbering style
+style = "arabic"  # "arabic" (1, 2, 3), "roman" (i, ii, iii), "alph" (a, b, c)
+by_section = false  # true = Figure 1.1, 1.2; false = Figure 1, 2
+
+# Reference format
+reference_format = "Figure~\\ref{fig:label}"  # LaTeX format
+prefix = "fig:"  # Label prefix for figures
+
+# Counter reset
+reset_by_chapter = false  # For book-type documents
+
+# Caption formatting
+[figures.captions]
+# Caption position relative to figure
+position = "bottom"  # "top", "bottom"
+
+# Caption format
+format = "Figure \\thefigure: "  # Prefix format
+separator = ": "  # Between number and caption text
+
+# Caption styling
+font_size = "small"
+font_style = "normal"  # "normal", "italic", "bold"
+alignment = "justified"  # "left", "center", "right", "justified"
+
+# Caption width
+width = "90%"
+indent = "0"
+
+# Long caption handling
+short_caption = true  # Generate short caption for list of figures
+max_toc_length = 60  # Characters in short caption
+
+# Figure spacing
+[figures.spacing]
+margin_top = "1.5rem"
+margin_bottom = "1.5rem"
+caption_spacing = "0.75rem"
+
+# Tables configuration
+[tables]
+# Default table settings
+alignment = "center"
+
+# Table formatting
+column_spacing = "1rem"
+row_spacing = "0.5rem"
+border_width = "1px"
+
+# Table styles
+style = "booktabs"  # "booktabs", "standard", "simple"
+alternating_rows = false
+header_row_style = "bold"
+
+# Table numbering
+[tables.numbering]
+style = "arabic"
+by_section = false
+reference_format = "Table~\\ref{tab:label}"
+prefix = "tab:"
+reset_by_chapter = false
+
+# Table captions (similar to figures)
+[tables.captions]
+position = "top"  # Tables typically have captions on top
+format = "Table \\thetable: "
+separator = ": "
+font_size = "small"
+font_style = "normal"
+alignment = "justified"
+width = "90%"
+
+# Figure processing options
+[figures.processing]
+# Image formats and optimization
+supported_formats = ["png", "jpg", "jpeg", "svg", "webp"]
+optimize_images = true
+max_width_px = 1200
+
+# HTML/CSS handling
+[figures.html]
+# Responsive images
+responsive = true
+max_width = "100%"
+height = "auto"
+
+# Figure container
+container_class = "figure"
+image_class = "figure-image"
+caption_class = "figure-caption"
+
+# Lazy loading
+lazy_loading = true
+placeholder_color = "#f5f5f5"
+
+# Image optimization
+optimize_images = true
+quality = 85  # JPEG quality (1-100)
+progressive = true
+
+# Table HTML styling
+[tables.html]
+table_class = "table"
+responsive_table = true
+striped_rows = false
+bordered = false
+hover_effect = false
+
+# Additional processing options
+print_dpi = 300     # High DPI for print/PDF
+screen_dpi = 150    # Medium DPI for screen/HTML
+web_dpi = 72        # Low DPI for web
+png_compression = 9  # 0-9, higher = more compression
+jpeg_quality = 85    # 1-100, higher = better quality
+auto_convert = true  # Convert formats as needed
+pdf_to_png_dpi = 150  # When converting PDF to PNG
+
+# Document type presets
+[figures.presets]
+
+[figures.presets.article]
+# Compact article format
+default_width = "\\columnwidth"  # For single column
+captions.width = "\\columnwidth"
+floats.top_fraction = 0.8
+
+[figures.presets.article_two_column]
+# Two-column article
+default_width = "\\columnwidth"
+max_width = "\\textwidth"  # Can span both columns with figure*
+
+[figures.presets.book]
+# Book format with more space
+default_width = "0.7\\textwidth"
+numbering.by_section = false
+numbering.reset_by_chapter = true
+captions.position = "bottom"
+
+[figures.presets.thesis]
+# Formal thesis format
+default_width = "0.8\\textwidth"
+captions.alignment = "justified"
+numbering.by_section = false
+floats.top_fraction = 0.6  # More conservative float placement
+
+# Specialized figure types
+[figures.subfigures]
+enabled = false  # Enable if subfigures are needed
+package = "subcaption"  # or "subfigure" (legacy)
+alignment = "center"
+caption_format = "(\\alph{subfigure})"
+separation = "\\quad"

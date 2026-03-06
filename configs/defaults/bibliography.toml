@@ -1,0 +1,184 @@
+# Bibliography Configuration
+# Defines citation styles, bibliography formatting, and reference management
+
+[bibliography]
+# Bibliography backend - Doctor uses built-in TOML processor
+backend = "doctor"  # Built-in TOML bibliography processor
+
+# Citation style - predefined styles for formatting
+style = "nature"  # "nature", "science", "apa", "chicago", "ieee", "mla", "numeric", "alphabetic"
+
+# Bibliography file(s) - TOML format references
+references_file = "references.toml"  # or ["main.toml", "supplementary.toml"]
+
+# Bibliography title/heading
+title = "References"
+heading_level = 1  # Section level for bibliography heading
+
+# Citation behavior
+[bibliography.citations]
+# Citation format in text
+cite_style = "numeric"  # "numeric" [1], "author-year" (Smith 2023), "alphabetic" [Smi23]
+
+# Numeric citation formatting
+brackets = "square"  # "square" [1], "round" (1), "none" 1
+separator = ","      # Separator for multiple citations [1,2,3]
+range_separator = "-"  # Range separator [1-3]
+
+# Author-year formatting  
+year_brackets = "round"  # "round" (2023), "square" [2023]
+author_separator = ", "  # Between author and year: "Smith, 2023"
+
+# Citation compression and sorting
+compress_citations = true   # [1,2,3] -> [1-3]
+sort_citations = true      # [3,1,2] -> [1-3]
+
+# Multiple citation behavior
+max_authors_inline = 2     # "Smith et al." after this many authors
+max_authors_bibliography = 999  # Show all authors in bibliography
+
+# Bibliography formatting
+[bibliography.formatting]
+# Entry formatting
+hanging_indent = "1.5em"
+entry_spacing = "0.5em"
+font_size = "small"
+
+# Author name formatting
+author_format = "last-first"  # "last-first" (Smith, J.), "first-last" (J. Smith)
+et_al_threshold = 6           # Use "et al." after this many authors
+
+# Title formatting
+title_case = "sentence"  # "sentence", "title", "as-is"
+italic_titles = false    # Make titles italic
+quote_titles = true     # Put titles in quotes
+
+# Journal name formatting
+abbreviate_journals = true  # Use journal abbreviations
+italic_journals = true     # Make journal names italic
+
+# DOI and URL handling
+show_dois = true
+show_urls = false  # Generally not needed if DOI present
+url_date_format = "long"  # "long" (January 1, 2023), "short" (2023-01-01)
+
+# TOML Reference Format
+# References should be stored in TOML format like:
+# [reference-key]
+# type = "article"  # article, book, inproceedings, techreport, etc.
+# author = "Author Name" (or ["First Author", "Second Author"] for multiple)
+# title = "Paper Title"
+# journal = "Journal Name" (for articles)
+# year = 2023
+# volume = 42 (optional)
+# pages = "123-456" (optional)
+# doi = "10.1000/123456" (optional)
+
+# Citation processing settings
+[bibliography.processing]
+# Backend for processing bibliography files
+backend = "doctor"  # Built-in TOML bibliography processor
+sorting = "none"   # "none" (citation order), "nty" (name-title-year)
+
+# HTML citation handling
+[bibliography.html]
+# Citation linking
+link_citations = true
+citation_anchor_prefix = "cite-"
+bibliography_anchor_prefix = "ref-"
+
+# Citation popup/tooltips
+show_citation_preview = true
+preview_max_length = 200
+
+# Bibliography styling
+bibliography_css_class = "bibliography"
+citation_css_class = "citation"
+
+# Predefined citation styles
+[bibliography.styles]
+
+[bibliography.styles.nature]
+style = "nature"
+cite_style = "numeric"
+brackets = "square"
+sort_citations = true
+compress_citations = true
+max_authors_inline = 2
+
+[bibliography.styles.science]  
+style = "science"
+cite_style = "numeric"
+brackets = "round"
+sort_citations = true
+compress_citations = true
+max_authors_inline = 1
+
+[bibliography.styles.apa]
+style = "apa"
+cite_style = "author-year"
+year_brackets = "round"
+author_separator = ", "
+max_authors_inline = 2
+title_case = "sentence"
+
+[bibliography.styles.chicago]
+style = "chicago-authordate"
+cite_style = "author-year"
+year_brackets = "round"
+author_separator = " "
+max_authors_inline = 3
+
+[bibliography.styles.ieee]
+style = "ieee"
+cite_style = "numeric"
+brackets = "square"
+sort_citations = true
+compress_citations = false
+abbreviate_journals = true
+
+[bibliography.styles.physical_review]
+style = "phys"
+cite_style = "numeric"
+brackets = "square"
+sort_citations = false  # Citation order
+compress_citations = true
+abbreviate_journals = true
+show_dois = true
+show_urls = false
+
+[bibliography.styles.plos]
+style = "numeric"
+cite_style = "numeric" 
+brackets = "square"
+sort_citations = false
+compress_citations = false
+max_authors_bibliography = 6  # Use et al. after 6 authors
+
+# Field-specific presets
+[bibliography.presets]
+
+[bibliography.presets.physics]
+style = "physical_review"
+abbreviate_journals = true
+show_dois = true
+author_format = "first-last"
+max_authors_inline = 2
+
+[bibliography.presets.biology]
+style = "nature"  
+max_authors_inline = 2
+italic_titles = false
+show_dois = true
+
+[bibliography.presets.computer_science]
+style = "ieee"
+show_dois = true
+show_urls = true  # Common in CS
+url_date_format = "short"
+
+[bibliography.presets.humanities]
+style = "chicago"
+cite_style = "author-year"
+quote_titles = true
+show_urls = true

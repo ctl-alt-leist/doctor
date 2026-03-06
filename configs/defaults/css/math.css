@@ -1,0 +1,297 @@
+/*
+ * Mathematics Stylesheet
+ * Styling for mathematical notation, equations, and MathJax/KaTeX
+ */
+
+/* MathJax/KaTeX container styling */
+.MathJax, .katex {
+  font-size: 1em !important;
+}
+
+/* Display math (block equations) */
+.MathJax_Display, .katex-display {
+  margin: 1em 0;
+  text-align: center;
+  page-break-inside: avoid;
+}
+
+/* Inline math */
+.MathJax_CHTML, .katex {
+  font-size: inherit;
+  vertical-align: baseline;
+}
+
+/* Equation numbering */
+.equation-number {
+  float: right;
+  font-family: var(--font-sans);
+  font-size: var(--size-normal);
+  color: var(--text-secondary);
+  margin-top: 0.5em;
+}
+
+/* Equation environments */
+.equation {
+  margin: 1em 0;
+  text-align: center;
+  position: relative;
+  page-break-inside: avoid;
+}
+
+.equation .equation-number {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* Multi-line equations (align, gather, etc.) */
+.align, .gather, .split {
+  margin: 1em 0;
+  text-align: center;
+  page-break-inside: avoid;
+}
+
+.align .equation-number,
+.gather .equation-number {
+  display: block;
+  text-align: right;
+  margin-top: -1.5em;
+  margin-bottom: 1em;
+}
+
+/* Theorem environments */
+.theorem, .lemma, .corollary, .proposition {
+  margin: 1.5em 0;
+  padding: 1em;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  background: var(--background-alt);
+  page-break-inside: avoid;
+}
+
+.theorem-header, .lemma-header, .corollary-header, .proposition-header {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-style: normal;
+  margin-bottom: 0.5em;
+  color: var(--text-primary);
+}
+
+.theorem-body, .lemma-body, .corollary-body, .proposition-body {
+  font-style: italic;
+}
+
+/* Definition environments */
+.definition, .example {
+  margin: 1.5em 0;
+  padding: 1em;
+  border: 1px solid var(--border);
+  border-left: 4px solid #27ae60;
+  background: var(--background-alt);
+  page-break-inside: avoid;
+}
+
+.definition-header, .example-header {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-style: normal;
+  margin-bottom: 0.5em;
+  color: var(--text-primary);
+}
+
+.definition-body, .example-body {
+  font-style: normal;
+}
+
+/* Remark environments */
+.remark, .note {
+  margin: 1.5em 0;
+  padding: 1em;
+  border: 1px solid var(--border);
+  border-left: 4px solid #f39c12;
+  background: var(--background-alt);
+  page-break-inside: avoid;
+}
+
+.remark-header, .note-header {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-style: italic;
+  margin-bottom: 0.5em;
+  color: var(--text-primary);
+}
+
+.remark-body, .note-body {
+  font-style: normal;
+}
+
+/* Proof environment */
+.proof {
+  margin: 1.5em 0;
+  page-break-inside: avoid;
+}
+
+.proof-header {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-style: italic;
+  margin-bottom: 0.5em;
+  color: var(--text-primary);
+}
+
+.proof-body {
+  font-style: normal;
+  margin-left: 1em;
+}
+
+.qed {
+  float: right;
+  font-size: var(--size-large);
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin-top: -1.5em;
+}
+
+/* Mathematical symbols and operators */
+.math-operator {
+  font-family: 'Latin Modern Math', 'STIX Two Math', 'Cambria Math', serif;
+  font-style: normal;
+}
+
+/* Vector notation */
+.vector {
+  font-weight: bold;
+}
+
+.vector.arrow::after {
+  content: '→';
+  position: relative;
+  top: -0.8em;
+  left: -100%;
+  font-size: 0.8em;
+}
+
+.unit-vector::before {
+  content: '̂';
+  position: relative;
+  top: -0.5em;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Physics notation */
+.bra::before { content: '⟨'; }
+.bra::after { content: '|'; }
+.ket::before { content: '|'; }
+.ket::after { content: '⟩'; }
+.braket::before { content: '⟨'; }
+.braket::after { content: '⟩'; }
+
+/* Chemical equations */
+.chemical-equation {
+  text-align: center;
+  margin: 1em 0;
+  font-family: var(--font-serif);
+}
+
+.chemical-formula {
+  font-style: normal;
+  font-weight: normal;
+}
+
+/* Math font improvements for better rendering */
+mjx-container {
+  line-height: 1.2;
+  margin: 0.25em 0;
+}
+
+mjx-container[display="true"] {
+  margin: 1em 0;
+}
+
+/* Equation references and labels */
+.eqref {
+  font-family: var(--font-sans);
+  color: var(--link);
+  text-decoration: none;
+}
+
+.eqref:hover {
+  text-decoration: underline;
+}
+
+.eqref::before {
+  content: '(';
+}
+
+.eqref::after {
+  content: ')';
+}
+
+/* Matrix and array styling */
+.matrix, .pmatrix, .bmatrix {
+  display: inline-block;
+  text-align: center;
+  vertical-align: middle;
+}
+
+/* Math code blocks for LaTeX source */
+.math-source {
+  font-family: var(--font-mono);
+  background: var(--background-alt);
+  border: 1px solid var(--border);
+  padding: 0.5em;
+  margin: 0.5em 0;
+  border-radius: 3px;
+  font-size: var(--size-small);
+  overflow-x: auto;
+}
+
+/* Responsive math */
+@media screen and (max-width: 768px) {
+  .MathJax_Display, .katex-display {
+    font-size: 0.9em;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+  
+  .equation {
+    overflow-x: auto;
+  }
+  
+  .equation-number {
+    position: static;
+    float: right;
+    transform: none;
+    margin-top: 0.5em;
+  }
+}
+
+/* Print optimization for math */
+@media print {
+  .MathJax_Display, .katex-display,
+  .equation, .align, .gather {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  
+  .theorem, .lemma, .definition, .proof {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+}
+
+/* Dark mode math adjustments */
+@media (prefers-color-scheme: dark) {
+  .theorem, .lemma, .corollary, .proposition,
+  .definition, .example,
+  .remark, .note {
+    background: var(--background-alt);
+    border-color: var(--border);
+  }
+  
+  .MathJax, .katex {
+    color: var(--text-primary);
+  }
+}

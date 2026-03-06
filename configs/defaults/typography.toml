@@ -1,0 +1,110 @@
+# Typography Configuration
+# Font families, sizes, and spacing - generates CSS custom properties
+
+[typography]
+# Base font size for scaling
+base_size = "16px"
+
+# Font scale ratio for hierarchy (1.2 = minor third, 1.25 = major third)
+scale_ratio = 1.2
+
+# Line height as multiplier of font size
+line_height = 1.15
+paragraph_spacing = "0.5em"
+paragraph_indent = "1.5em"
+
+# Font families
+[typography.fonts]
+# Serif fonts for body text
+serif = ["Crimson Text", "Source Serif Pro", "Charter", "Georgia", "serif"]
+
+# Sans-serif fonts for headings
+sans = ["Source Sans Pro", "Inter", "Helvetica Neue", "Arial", "sans-serif"]
+
+# Monospace fonts for code
+mono = ["Fira Code", "Source Code Pro", "Consolas", "Monaco", "monospace"]
+
+# Web font loading
+[typography.web_fonts]
+# Google Fonts to load
+google_fonts = [
+  "Crimson+Text:ital,wght@0,400;0,600;1,400;1,600",
+  "Source+Sans+Pro:ital,wght@0,400;0,600;0,700;1,400;1,600", 
+  "Fira+Code:wght@400;500"
+]
+
+# Font sizes using CSS units
+[typography.sizes]
+tiny = "0.6rem"
+scriptsize = "0.7rem"
+footnotesize = "0.8rem"
+small = "0.9rem"
+normal = "1rem"
+large = "1.2rem"
+Large = "1.4rem"
+LARGE = "1.7rem"
+huge = "2rem"
+Huge = "2.5rem"
+
+# Specific element sizes
+[typography.elements]
+title = { size = "LARGE", family = "sans", weight = "bold" }
+subtitle = { size = "Large", family = "sans", weight = "normal" }
+author = { size = "large", family = "sans", weight = "normal" }
+date = { size = "normalsize", family = "sans", weight = "normal" }
+
+# Section headings
+section = { size = "Large", family = "sans", weight = "bold", spacing_before = "2em", spacing_after = "1em" }
+subsection = { size = "large", family = "sans", weight = "bold", spacing_before = "1.5em", spacing_after = "0.75em" }
+subsubsection = { size = "normalsize", family = "sans", weight = "bold", spacing_before = "1em", spacing_after = "0.5em" }
+
+# Special elements
+abstract = { size = "small", family = "serif", style = "italic" }
+caption = { size = "small", family = "serif", weight = "normal" }
+footnote = { size = "footnotesize", family = "serif", weight = "normal" }
+code = { size = "small", family = "mono", weight = "normal" }
+
+# Text formatting options
+[typography.formatting]
+# Paragraph settings
+justify_text = true
+widow_penalty = 10000
+club_penalty = 10000
+hyphenation_penalty = 50
+
+# Emphasis and highlighting
+emphasis_style = "italic"  # "italic", "bold", "underline"
+strong_style = "bold"
+highlight_color = "#ffff00"
+
+# Quotation marks (smart quotes)
+smart_quotes = true
+quote_style = "english"  # "english", "french", "german"
+
+# Typography rules
+orphan_control = true
+ligatures = true
+old_style_figures = false
+
+# Document type overrides
+[typography.presets]
+
+[typography.presets.article]
+# Compact article typography
+line_height = 1.1
+paragraph_spacing = "0.25em"
+section.spacing_before = "1.5em"
+section.spacing_after = "0.75em"
+
+[typography.presets.book] 
+# Book typography with more spacing
+line_height = 1.2
+paragraph_spacing = "0.75em" 
+paragraph_indent = "2em"
+
+[typography.presets.thesis]
+# Formal thesis typography
+line_height = 1.25
+paragraph_spacing = "1em"
+paragraph_indent = "2em"
+justify_text = false  # Often required by institutions

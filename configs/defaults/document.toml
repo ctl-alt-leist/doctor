@@ -1,0 +1,90 @@
+# Document Configuration
+# Defines document type, metadata, and structural settings
+
+[document]
+# Document type affects default styling across all other configuration areas
+# Options: "article", "book", "thesis", "report", "presentation", "custom"
+type = "article"
+
+# CSS class mapping for HTML output
+# These CSS classes are applied to the document body
+css_classes = { article = "document-type-article", book = "document-type-book", thesis = "document-type-thesis", report = "document-type-report" }
+
+# Document metadata
+title = ""
+subtitle = ""
+authors = []
+affiliations = []
+date = "auto"  # "auto" uses current date, or specify "YYYY-MM-DD"
+abstract = ""
+keywords = []
+
+# Document structure
+[document.structure]
+# Section numbering depth (0 = no numbering, 3 = subsubsection)
+numbering_depth = 3
+
+# Table of contents settings
+toc_depth = 3
+include_toc = true
+include_lot = false  # List of tables
+include_lof = false  # List of figures
+
+# Page numbering style: "arabic", "roman", "Roman", "alph", "Alph"
+page_numbering = "arabic"
+
+# Section formatting
+section_style = "default"  # "default", "compact", "spaced"
+
+# Document language and localization
+[document.language]
+primary = "en"
+locale = "en-US"  # HTML lang attribute
+hyphenation = true
+
+# Chapter settings (for book-type documents)
+[document.chapters]
+enabled = false  # Set to true for book/thesis types
+numbering = "arabic"
+include_in_toc = true
+start_new_page = true
+
+# Document type presets - these override settings above
+[document.presets]
+
+[document.presets.article]
+# Academic journal article settings
+type = "article"
+numbering_depth = 2
+include_toc = false
+chapters.enabled = false
+section_style = "compact"
+
+[document.presets.book]
+# Book/monograph settings
+type = "book"
+numbering_depth = 3
+include_toc = true
+include_lot = true
+include_lof = true
+chapters.enabled = true
+chapters.page_break_before = true
+
+[document.presets.thesis]
+# Thesis/dissertation settings
+type = "thesis"
+numbering_depth = 3
+include_toc = true
+include_lot = true
+include_lof = true
+chapters.enabled = true
+chapters.page_break_before = true
+section_style = "spaced"
+
+[document.presets.report]
+# Technical report settings
+type = "report"
+numbering_depth = 2
+include_toc = true
+chapters.enabled = false
+section_style = "default"

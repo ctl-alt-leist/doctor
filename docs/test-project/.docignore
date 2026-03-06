@@ -1,0 +1,25 @@
+# Ignore backup files
+*.bak
+*.tmp
+*~
+
+# Ignore build outputs
+*.pdf
+*.html
+*.docx
+
+# Ignore hidden files (except this one)
+.*
+!.docignore
+
+# Ignore figure source files
+_figures/*.ai
+_figures/*.psd
+_figures/*.sketch
+
+# Ignore temporary LaTeX files
+*.aux
+*.log
+*.toc
+*.out
+*.synctex.gz

@@ -1,0 +1,59 @@
+# Bibliography References in TOML Format
+# Doctor uses this format instead of BibTeX for easier parsing and configuration
+
+[hawking-1975-a]
+type = "article"
+author = "Stephen W. Hawking"
+title = "Particle Creation by Black Holes"
+journal = "Communications in Mathematical Physics"
+volume = 43
+number = 3
+pages = "199-220"
+year = 1975
+doi = "10.1007/BF02345020"
+
+[weinberg-1995-a]
+type = "book"
+author = "Steven Weinberg"
+title = "The Quantum Theory of Fields, Volume I: Foundations"
+publisher = "Cambridge University Press"
+year = 1995
+isbn = "9780521550017"
+
+[bekenstein-1973-a]
+type = "article"
+author = "Jacob D. Bekenstein"
+title = "Black Holes and Entropy"
+journal = "Physical Review D"
+volume = 7
+number = 8
+pages = "2333-2346"
+year = 1973
+doi = "10.1103/PhysRevD.7.2333"
+
+[ads-cft-1997-a]
+type = "article"  # Changed from inproceedings since it was published in a journal
+author = "Juan Maldacena"
+title = "The Large N Limit of Superconformal Field Theories and Supergravity"
+journal = "Advances in Theoretical and Mathematical Physics"
+volume = 2
+pages = "231-252"
+year = 1998
+arxiv = "hep-th/9711200"
+
+# Example of nested references using dot notation
+[physics.quantum.qft.weinberg]
+type = "book"
+author = "Steven Weinberg"
+title = "The Quantum Theory of Fields, Volume II: Modern Applications"
+publisher = "Cambridge University Press"
+year = 1996
+isbn = "9780521550024"
+
+[physics.relativity.gtr.misner]
+type = "book"
+author = "Charles W. Misner and Kip S. Thorne and John Archibald Wheeler"
+title = "Gravitation"
+publisher = "W. H. Freeman"
+year = 1973
+isbn = "9780716703440"

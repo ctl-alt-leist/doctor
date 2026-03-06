@@ -1,0 +1,138 @@
+# Layout Configuration  
+# Page geometry and layout settings - generates CSS custom properties
+
+[layout]
+# Page dimensions
+paper_size = "a4"  # "a4", "letter", "legal", "a3", "custom"
+orientation = "portrait"  # "portrait", "landscape"
+
+# Custom page size (when paper_size = "custom")
+custom_width = "21cm"
+custom_height = "29.7cm"
+
+# Column layout
+columns = 1  # Number of columns (1 or 2 for most academic documents)
+column_gap = "1.5rem"  # Space between columns
+column_rule = false  # Draw line between columns
+
+# Page margins
+[layout.margins]
+top = "2.5cm"
+bottom = "2.5cm" 
+left = "2.5cm"
+right = "2.5cm"
+
+# Asymmetric margins for binding (book/thesis)
+inner = "3cm"    # Used instead of left for two-sided documents
+outer = "2.5cm"  # Used instead of right for two-sided documents
+binding_offset = "0.5cm"  # Additional space for binding
+
+# Headers and footers
+[layout.headers_footers]
+# Enable headers/footers
+header_enabled = true
+footer_enabled = true
+
+# Header content (left, center, right for even/odd pages)
+header_left_even = ""
+header_center_even = ""  
+header_right_even = "\\thepage"
+
+header_left_odd = "\\thepage"
+header_center_odd = ""
+header_right_odd = "\\rightmark"  # Section name
+
+# Footer content
+footer_left_even = ""
+footer_center_even = ""
+footer_right_even = ""
+
+footer_left_odd = ""
+footer_center_odd = ""
+footer_right_odd = ""
+
+# Header/footer styling
+header_rule = true  # Line under header
+footer_rule = false  # Line above footer
+header_height = "1rem"
+footer_height = "1rem"
+
+# Vertical spacing
+[layout.spacing]
+section_spacing = "2rem"
+paragraph_spacing = "0.5rem"
+list_spacing = "0.75rem"
+
+# Element spacing
+element_margin = "1rem"
+figure_margin = "2rem"
+table_margin = "2rem"
+
+# Special pages
+[layout.title_page]
+enabled = true
+new_page = true  # Start on new page
+page_style = "empty"  # No headers/footers
+center_vertically = true
+
+[layout.abstract_page]
+new_page = false  # Same page as title (articles) or new page (thesis)
+page_style = "plain"  # Page number only
+
+# Two-sided printing options
+[layout.two_sided]
+enabled = false  # Enable for book/thesis
+open_right = true  # Chapters start on right-hand page
+blank_page_text = "This page intentionally left blank"
+
+# Web-specific layout
+[layout.web]
+max_width = "800px"
+responsive = true
+mobile_breakpoint = "768px"
+tablet_breakpoint = "1024px"
+sidebar_width = "250px"
+content_padding = "2rem"
+
+# Document type presets
+[layout.presets]
+
+[layout.presets.article]
+# Single column journal article
+columns = 1
+margins = { top = "2.5cm", bottom = "2.5cm", left = "2.5cm", right = "2.5cm" }
+two_sided.enabled = false
+title_page.enabled = false
+web.max_width = "700px"
+
+[layout.presets.article_two_column]
+# Double column journal format
+columns = 2
+column_gap = "1.5rem"
+margins = { top = "2cm", bottom = "2cm", left = "2cm", right = "2cm" }
+
+[layout.presets.book]
+# Book layout with binding considerations
+columns = 1
+two_sided.enabled = true
+margins = { top = "2.5cm", bottom = "2.5cm", inner = "3cm", outer = "2.5cm" }
+binding_offset = "0.5cm"
+title_page.enabled = true
+abstract_page.new_page = true
+
+[layout.presets.thesis]
+# Formal thesis layout
+columns = 1
+two_sided.enabled = true  
+margins = { top = "3.5cm", bottom = "2.5cm", inner = "3.5cm", outer = "2.5cm" }
+title_page.enabled = true
+abstract_page.new_page = true
+header_rule = true
+
+[layout.presets.report]
+# Technical report format
+columns = 1
+two_sided.enabled = false
+margins = { top = "2.5cm", bottom = "2.5cm", left = "3cm", right = "2.5cm" }
+title_page.enabled = true
+binding_offset = "0.5cm"

@@ -1,0 +1,410 @@
+/*
+ * Book Stylesheet
+ * Specific styles for book and monograph documents
+ */
+
+/* Book-specific layout */
+.document-type-book {
+  /* Relaxed typography for books */
+  --line-height-base: 1.2;
+  --paragraph-spacing: 0.75em;
+  --paragraph-indent: 2em;
+  --section-spacing: 2.5em;
+  --page-max-width: 800px;
+}
+
+/* Book title page */
+.document-type-book .title-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  page-break-after: always;
+}
+
+.document-type-book .title-page .document-title {
+  font-size: var(--size-Huge);
+  font-weight: 300;
+  margin: 3rem 0;
+  line-height: 1.1;
+}
+
+.document-type-book .title-page .document-subtitle {
+  font-size: var(--size-LARGE);
+  font-weight: 400;
+  color: var(--text-secondary);
+  margin: 2rem 0 4rem 0;
+}
+
+.document-type-book .title-page .document-authors {
+  font-size: var(--size-Large);
+  font-weight: 500;
+  margin: 3rem 0;
+}
+
+.document-type-book .title-page .publisher {
+  font-size: var(--size-large);
+  color: var(--text-secondary);
+  margin-top: auto;
+  margin-bottom: 2rem;
+}
+
+/* Book chapters */
+.chapter {
+  page-break-before: always;
+  break-before: page;
+  margin-top: 0;
+}
+
+.chapter-title {
+  font-size: var(--size-huge);
+  font-weight: 300;
+  margin: 4rem 0 2rem 0;
+  text-align: center;
+  color: var(--text-primary);
+}
+
+.chapter-number {
+  font-size: var(--size-LARGE);
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.chapter-epigraph {
+  font-size: var(--size-small);
+  font-style: italic;
+  text-align: right;
+  margin: 2rem 0 3rem 0;
+  padding: 1rem 2rem;
+  border-left: 3px solid var(--border);
+  color: var(--text-secondary);
+}
+
+.chapter-epigraph-attribution {
+  font-size: var(--size-footnotesize);
+  margin-top: 0.5rem;
+  font-weight: 500;
+}
+
+/* Book sections and headings */
+.document-type-book h1 {
+  font-size: var(--size-LARGE);
+  font-weight: 600;
+  margin: 3rem 0 1.5rem 0;
+  border-bottom: 3px solid var(--accent);
+  padding-bottom: 0.5rem;
+}
+
+.document-type-book h2 {
+  font-size: var(--size-Large);
+  font-weight: 500;
+  margin: 2rem 0 1rem 0;
+  color: var(--text-primary);
+}
+
+.document-type-book h3 {
+  font-size: var(--size-large);
+  font-weight: 500;
+  margin: 1.5rem 0 0.75rem 0;
+}
+
+.document-type-book h4 {
+  font-size: var(--size-normal);
+  font-weight: 600;
+  margin: 1rem 0 0.5rem 0;
+  font-style: italic;
+}
+
+/* Enhanced paragraph styling */
+.document-type-book p {
+  text-align: justify;
+  hyphens: auto;
+  orphans: 3;
+  widows: 3;
+}
+
+.document-type-book p:first-child,
+.document-type-book h1 + p,
+.document-type-book h2 + p,
+.document-type-book h3 + p {
+  text-indent: 0;
+}
+
+/* Drop caps for chapter openings */
+.chapter-opening::first-letter {
+  float: left;
+  font-size: 4em;
+  line-height: 0.8;
+  padding: 0.1em 0.1em 0 0;
+  margin: 0.1em 0.1em 0 0;
+  font-family: var(--font-serif);
+  font-weight: 700;
+  color: var(--accent);
+}
+
+/* Table of contents for books */
+.document-type-book .toc {
+  page-break-before: always;
+  break-before: page;
+  margin: 2rem 0;
+}
+
+.document-type-book .toc h1 {
+  text-align: center;
+  margin-bottom: 3rem;
+  border: none;
+  padding: 0;
+}
+
+.document-type-book .toc ul {
+  list-style: none;
+  padding: 0;
+}
+
+.document-type-book .toc li {
+  margin: 1rem 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.document-type-book .toc .chapter-entry {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: var(--size-large);
+  margin: 1.5rem 0;
+}
+
+.document-type-book .toc .section-entry {
+  margin-left: 2rem;
+  font-size: var(--size-normal);
+}
+
+.document-type-book .toc .subsection-entry {
+  margin-left: 4rem;
+  font-size: var(--size-small);
+  color: var(--text-secondary);
+}
+
+.document-type-book .toc .page-dots {
+  flex-grow: 1;
+  border-bottom: 1px dotted var(--text-secondary);
+  margin: 0 1rem;
+  height: 1px;
+  align-self: end;
+}
+
+/* Part pages (for multi-part books) */
+.part-page {
+  page-break-before: always;
+  break-before: page;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  background: var(--background-alt);
+}
+
+.part-number {
+  font-size: var(--size-huge);
+  font-weight: 100;
+  color: var(--accent);
+  margin-bottom: 2rem;
+  text-transform: uppercase;
+  letter-spacing: 4px;
+}
+
+.part-title {
+  font-size: var(--size-Huge);
+  font-weight: 300;
+  margin: 2rem 0;
+}
+
+/* Book-specific figure and table styling */
+.document-type-book .figure {
+  margin: 2rem auto;
+  page-break-inside: avoid;
+}
+
+.document-type-book .figure-caption {
+  font-size: var(--size-small);
+  text-align: justify;
+  padding: 0 2rem;
+  hyphens: auto;
+}
+
+.document-type-book .table-container {
+  margin: 2rem auto;
+  page-break-inside: avoid;
+}
+
+/* Index (for books) */
+.index {
+  page-break-before: always;
+  break-before: page;
+  margin: 2rem 0;
+  column-count: 2;
+  column-gap: 2rem;
+}
+
+.index h1 {
+  column-span: all;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.index ul {
+  list-style: none;
+  padding: 0;
+  font-size: var(--size-small);
+}
+
+.index li {
+  margin: 0.25rem 0;
+  page-break-inside: avoid;
+}
+
+.index .main-entry {
+  font-weight: 600;
+}
+
+.index .sub-entry {
+  margin-left: 1rem;
+  font-weight: normal;
+}
+
+.index .page-refs {
+  color: var(--text-secondary);
+}
+
+/* Appendices */
+.appendix {
+  page-break-before: always;
+  break-before: page;
+}
+
+.appendix-title {
+  font-size: var(--size-LARGE);
+  text-align: center;
+  margin: 3rem 0 2rem 0;
+  color: var(--text-secondary);
+}
+
+/* Book headers and footers */
+.document-type-book .page-header {
+  font-size: var(--size-footnotesize);
+  padding: 1rem 0;
+}
+
+.document-type-book .page-footer {
+  font-size: var(--size-footnotesize);
+  padding: 1rem 0;
+}
+
+.running-header-chapter {
+  font-style: italic;
+}
+
+.running-header-section {
+  font-weight: 500;
+}
+
+/* Footnotes in books */
+.document-type-book .footnote {
+  font-size: var(--size-footnotesize);
+  line-height: 1.3;
+  margin-bottom: 0.5rem;
+}
+
+/* Print optimizations for books */
+@media print {
+  @page {
+    margin: 1in 0.75in 1in 1.25in; /* Binding margin */
+    size: 6in 9in; /* Typical book size */
+  }
+  
+  @page :left {
+    margin: 1in 1.25in 1in 0.75in;
+    
+    @top-left {
+      content: string(chapter-title);
+      font-size: 9pt;
+      font-style: italic;
+    }
+    
+    @top-right {
+      content: counter(page);
+      font-size: 9pt;
+    }
+  }
+  
+  @page :right {
+    @top-left {
+      content: counter(page);
+      font-size: 9pt;
+    }
+    
+    @top-right {
+      content: string(book-title);
+      font-size: 9pt;
+    }
+  }
+  
+  .document-type-book {
+    font-size: 10pt;
+    line-height: 1.2;
+  }
+  
+  .chapter-title {
+    string-set: chapter-title content();
+    font-size: 18pt;
+  }
+  
+  .document-type-book h1 {
+    font-size: 14pt;
+    page-break-after: avoid;
+  }
+  
+  .document-type-book h2 {
+    font-size: 12pt;
+    page-break-after: avoid;
+  }
+}
+
+/* Responsive design for books */
+@media screen and (max-width: 1024px) {
+  .document-type-book {
+    --page-max-width: 90%;
+    padding: 1rem;
+  }
+  
+  .title-page .document-title {
+    font-size: var(--size-LARGE);
+  }
+  
+  .chapter-title {
+    font-size: var(--size-Large);
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .document-type-book p {
+    text-align: left;
+    text-indent: 0;
+    hyphens: none;
+  }
+  
+  .index {
+    column-count: 1;
+  }
+  
+  .chapter-opening::first-letter {
+    font-size: 2.5em;
+  }
+}

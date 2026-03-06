@@ -7,7 +7,14 @@ requires-python = ">=3.12"
 authors = [
     { name = "Brian Leist", email = "bleist@protonmail.com" }
 ]
-dependencies = []
+dependencies = [
+    "click>=8.0",
+    "pydantic>=2.0",
+    "toml>=0.10",
+    "jinja2>=3.0",
+    "pyyaml>=6.0",
+    "playwright>=1.54.0",
+]
 
 [project.optional-dependencies]
 dev = [
