@@ -1,0 +1,272 @@
+/*
+ * Article Stylesheet
+ * Specific styles for academic journal articles
+ */
+
+/* Article-specific layout */
+.document-type-article {
+  /* Compact typography for articles */
+  --line-height-base: 1.1;
+  --paragraph-spacing: 0.25em;
+  --section-spacing: 1.5em;
+  --page-max-width: 700px;
+}
+
+/* Article title styling */
+.document-type-article .document-title {
+  font-size: var(--size-LARGE);
+  margin: 1.5rem 0 1rem 0;
+  text-align: center;
+}
+
+.document-type-article .document-subtitle {
+  font-size: var(--size-Large);
+  margin: 0.5rem 0 1.5rem 0;
+}
+
+/* Author information */
+.document-type-article .document-authors {
+  font-size: var(--size-large);
+  margin: 1rem 0;
+}
+
+.document-type-article .author-affiliations {
+  font-size: var(--size-small);
+  color: var(--text-secondary);
+  margin: 0.5rem 0 2rem 0;
+  text-align: center;
+}
+
+/* Abstract styling for articles */
+.document-type-article .abstract {
+  font-size: var(--size-small);
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background: var(--background-alt);
+  border: none;
+  border-left: 3px solid var(--accent);
+}
+
+.document-type-article .abstract h2 {
+  font-size: var(--size-normal);
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  text-align: left;
+}
+
+/* Keywords */
+.keywords {
+  font-size: var(--size-small);
+  margin: 1rem 0 2rem 0;
+  padding: 0.75rem;
+  background: var(--background-alt);
+  border-left: 3px solid #27ae60;
+}
+
+.keywords-label {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.keywords-list {
+  display: inline;
+  font-style: italic;
+}
+
+/* Article sections */
+.document-type-article h1 {
+  font-size: var(--size-Large);
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  border-bottom: 2px solid var(--border);
+  padding-bottom: 0.5rem;
+}
+
+.document-type-article h2 {
+  font-size: var(--size-large);
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  color: var(--text-primary);
+}
+
+.document-type-article h3 {
+  font-size: var(--size-normal);
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+/* Compact spacing for articles */
+.document-type-article p {
+  margin: var(--paragraph-spacing) 0;
+}
+
+.document-type-article ul, .document-type-article ol {
+  margin: 0.5rem 0;
+}
+
+.document-type-article li {
+  margin: 0.1rem 0;
+}
+
+/* Figure and table adjustments */
+.document-type-article .figure {
+  margin: 1.5rem auto;
+}
+
+.document-type-article .figure-caption {
+  font-size: var(--size-footnotesize);
+  max-width: 100%;
+}
+
+.document-type-article .table-container {
+  margin: 1.5rem auto;
+}
+
+.document-type-article table {
+  font-size: var(--size-small);
+}
+
+/* Two-column article layout */
+.document-type-article.layout-two-column {
+  column-count: 2;
+  column-gap: 1.5rem;
+  column-rule: 1px solid var(--border);
+}
+
+.document-type-article.layout-two-column .document-title,
+.document-type-article.layout-two-column .document-subtitle,
+.document-type-article.layout-two-column .document-authors,
+.document-type-article.layout-two-column .author-affiliations,
+.document-type-article.layout-two-column .abstract,
+.document-type-article.layout-two-column .keywords {
+  column-span: all;
+}
+
+.document-type-article.layout-two-column h1 {
+  column-span: all;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+/* Wide figures in two-column layout */
+.document-type-article.layout-two-column .figure.wide {
+  column-span: all;
+  margin: 2rem 0;
+}
+
+/* References section */
+.document-type-article .bibliography h1,
+.document-type-article .bibliography h2 {
+  font-size: var(--size-large);
+  margin: 2rem 0 1rem 0;
+  column-span: all;
+}
+
+.document-type-article .bibliography {
+  margin-top: 2rem;
+}
+
+.document-type-article .bibentry {
+  font-size: var(--size-footnotesize);
+  margin-bottom: 0.75rem;
+}
+
+/* Compact math environments */
+.document-type-article .equation {
+  margin: 0.75rem 0;
+}
+
+.document-type-article .theorem,
+.document-type-article .lemma,
+.document-type-article .definition {
+  margin: 1rem 0;
+  padding: 0.75rem;
+}
+
+/* Article-specific header/footer */
+.document-type-article .page-header {
+  display: none; /* Articles typically don't have headers */
+}
+
+.document-type-article .page-footer {
+  font-size: var(--size-footnotesize);
+  text-align: center;
+  justify-content: center;
+}
+
+/* Journal-specific styling */
+.journal-nature {
+  --accent: #dd3d2d;
+}
+
+.journal-nature .abstract {
+  background: none;
+  border: none;
+  font-weight: 500;
+}
+
+.journal-science {
+  --accent: #1f4788;
+}
+
+.journal-science .document-title {
+  color: var(--accent);
+}
+
+.journal-plos {
+  --accent: #f8a71b;
+}
+
+.journal-plos .abstract {
+  background: #fffef8;
+  border-left: 4px solid var(--accent);
+}
+
+/* Print optimizations for articles */
+@media print {
+  .document-type-article {
+    font-size: 10pt;
+    line-height: 1.15;
+  }
+  
+  .document-type-article .document-title {
+    font-size: 16pt;
+  }
+  
+  .document-type-article h1 {
+    font-size: 14pt;
+  }
+  
+  .document-type-article h2 {
+    font-size: 12pt;
+  }
+  
+  .document-type-article.layout-two-column {
+    column-count: 2;
+    column-gap: 0.5in;
+  }
+  
+  /* Prevent widows and orphans in articles */
+  .document-type-article p {
+    orphans: 2;
+    widows: 2;
+  }
+}
+
+/* Mobile responsiveness */
+@media screen and (max-width: 768px) {
+  .document-type-article.layout-two-column {
+    column-count: 1;
+  }
+  
+  .document-type-article .document-title {
+    font-size: var(--size-Large);
+  }
+  
+  .document-type-article .abstract,
+  .document-type-article .keywords {
+    margin: 1rem 0;
+    padding: 0.75rem;
+  }
+}

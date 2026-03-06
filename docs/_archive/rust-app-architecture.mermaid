@@ -1,0 +1,116 @@
+graph TD
+    %% Frontend Layer (Web Technologies)
+    subgraph Frontend["Frontend Layer (Web)"]
+        A[Editor Component] --> B[Live Preview Pane]
+        C[File Tree Browser] --> D[Math Editor Modal]
+        E[Bibliography Panel] --> F[Settings/Config UI]
+        G[Status Bar] --> H[Search Interface]
+    end
+
+    %% Tauri Bridge Layer
+    subgraph TauriBridge["Tauri Bridge Layer"]
+        I[Tauri Commands API] --> J[Event System]
+        K[File System Watcher] --> L[IPC Channel]
+        M[Window Management] --> N[Menu System]
+    end
+
+    %% Rust Backend Core
+    subgraph RustCore["Rust Backend Core"]
+        O[Vault Manager] --> P[Document Parser]
+        Q[Math Processor] --> R[Reference Resolver]
+        S[Bibliography Engine] --> T[CSS Style Engine]
+        U[File Index] --> V[Search Engine]
+        W[Configuration Manager] --> X[Export Pipeline]
+    end
+
+    %% Python Bridge (Transitional)
+    subgraph PythonBridge["Python Integration (Phase 1)"]
+        Y[PyO3 FFI Bridge] --> Z[Doctor CLI Wrapper]
+        AA[Content Ingestion] --> BB[Structure Analysis]
+        CC[Assembly Pipeline] --> DD[Generation Pipeline]
+    end
+
+    %% External Dependencies
+    subgraph External["External Systems"]
+        EE[File System] --> FF[KaTeX/MathJax CDN]
+        GG[Fonts & Assets] --> HH[PDF Engines]
+        II[OS Integration] --> JJ[Clipboard/Drag-Drop]
+    end
+
+    %% Data Flow: Frontend → Backend
+    A --> I
+    B --> I
+    C --> I
+    D --> I
+    E --> I
+    F --> I
+    H --> I
+
+    %% Tauri Bridge → Rust Core
+    I --> O
+    I --> P
+    I --> Q
+    I --> S
+    I --> U
+    I --> W
+    K --> O
+    K --> U
+
+    %% Rust Core Processing
+    P --> |Markdown Parsing| Q
+    Q --> |Math Rendering| R
+    R --> |Cross-refs| S
+    S --> |Citations| T
+    T --> |Styled Output| B
+    U --> |File Search| V
+    V --> |Results| H
+
+    %% Python Bridge Integration (Phase 1)
+    O --> |Complex Processing| Y
+    Y --> Z
+    Z --> AA
+    AA --> BB
+    BB --> CC
+    CC --> DD
+    DD --> |Generated Output| X
+
+    %% External System Integration
+    O --> EE
+    Q --> FF
+    T --> GG
+    X --> HH
+    I --> II
+    I --> JJ
+
+    %% Real-time Updates
+    K --> |File Changes| A
+    K --> |File Changes| B
+    K --> |File Changes| C
+    J --> |Events| A
+    J --> |Events| B
+
+    %% Export Flow
+    A --> |Export Request| X
+    X --> |PDF/HTML| HH
+    X --> |Output Files| EE
+
+    %% Component Details
+    O --> |Wikilinks| R
+    O --> |Asset Discovery| R
+    P --> |Sections| R
+    P --> |Math Blocks| Q
+    S --> |Reference Database| E
+
+    %% Styling
+    classDef frontend fill:#e3f2fd
+    classDef tauri fill:#fff3e0
+    classDef rust fill:#ffebee
+    classDef python fill:#f3e5f5
+    classDef external fill:#e8f5e8
+    classDef dataflow fill:#fff9c4
+
+    class A,B,C,D,E,F,G,H frontend
+    class I,J,K,L,M,N tauri
+    class O,P,Q,R,S,T,U,V,W,X rust
+    class Y,Z,AA,BB,CC,DD python
+    class EE,FF,GG,HH,II,JJ external

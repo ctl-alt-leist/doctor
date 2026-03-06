@@ -1,0 +1,286 @@
+/*
+ * Typography Stylesheet
+ * Implements font families, sizes, and text formatting from typography.toml
+ */
+
+/* Base typography */
+html {
+  font-size: 16px; /* Base size for rem calculations */
+  line-height: var(--line-height-base);
+}
+
+body {
+  font-family: var(--font-serif);
+  font-size: var(--size-normal);
+  line-height: var(--line-height-base);
+  color: var(--text-primary);
+  background: var(--background);
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+  -ms-hyphens: auto;
+}
+
+/* Paragraph formatting */
+p {
+  margin: var(--paragraph-spacing) 0;
+  text-indent: var(--paragraph-indent);
+}
+
+/* First paragraph after heading should not be indented */
+h1 + p, h2 + p, h3 + p, h4 + p, h5 + p, h6 + p {
+  text-indent: 0;
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  line-height: 1.2;
+  margin-top: var(--section-spacing);
+  margin-bottom: calc(var(--section-spacing) / 2);
+  color: var(--text-primary);
+}
+
+h1 {
+  font-size: var(--size-LARGE);
+  margin-top: calc(var(--section-spacing) * 1.5);
+  margin-bottom: var(--section-spacing);
+}
+
+h2 {
+  font-size: var(--size-Large);
+  margin-top: calc(var(--section-spacing) * 1.25);
+}
+
+h3 {
+  font-size: var(--size-large);
+  margin-top: var(--section-spacing);
+}
+
+h4 {
+  font-size: var(--size-normal);
+  font-weight: 600;
+}
+
+h5, h6 {
+  font-size: var(--size-normal);
+  font-weight: 600;
+  font-style: italic;
+}
+
+/* Document title and metadata */
+.document-title {
+  font-family: var(--font-sans);
+  font-size: var(--size-LARGE);
+  font-weight: 700;
+  text-align: center;
+  margin: 2rem 0;
+}
+
+.document-subtitle {
+  font-family: var(--font-sans);
+  font-size: var(--size-Large);
+  font-weight: 400;
+  text-align: center;
+  margin: 1rem 0 2rem 0;
+  color: var(--text-secondary);
+}
+
+.document-authors {
+  font-family: var(--font-sans);
+  font-size: var(--size-large);
+  text-align: center;
+  margin: 1rem 0;
+}
+
+.document-date {
+  font-family: var(--font-sans);
+  font-size: var(--size-normal);
+  text-align: center;
+  margin: 0.5rem 0 2rem 0;
+  color: var(--text-secondary);
+}
+
+/* Abstract */
+.abstract {
+  font-size: var(--size-small);
+  font-style: italic;
+  margin: 2rem 0;
+  padding: 1rem;
+  background: var(--background-alt);
+  border-left: 4px solid var(--accent);
+}
+
+.abstract h2 {
+  font-size: var(--size-normal);
+  font-style: normal;
+  font-weight: 600;
+  margin-top: 0;
+}
+
+/* Text formatting */
+em, .emphasis {
+  font-style: italic;
+}
+
+strong, .strong {
+  font-weight: 600;
+}
+
+.highlight {
+  background-color: #ffff00;
+  padding: 0.1em 0.2em;
+}
+
+/* Code and monospace */
+code, .code {
+  font-family: var(--font-mono);
+  font-size: var(--size-small);
+  background: var(--background-alt);
+  padding: 0.1em 0.3em;
+  border-radius: 3px;
+}
+
+pre {
+  font-family: var(--font-mono);
+  font-size: var(--size-small);
+  line-height: 1.4;
+  background: var(--background-alt);
+  padding: 1rem;
+  border-radius: 6px;
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+
+pre code {
+  background: none;
+  padding: 0;
+}
+
+/* Lists */
+ul, ol {
+  margin: var(--paragraph-spacing) 0;
+  padding-left: 2em;
+}
+
+li {
+  margin: 0.25em 0;
+}
+
+/* Nested lists */
+ul ul, ol ol, ul ol, ol ul {
+  margin: 0.25em 0;
+}
+
+/* Definition lists */
+dl {
+  margin: var(--paragraph-spacing) 0;
+}
+
+dt {
+  font-weight: 600;
+  margin-top: 0.5em;
+}
+
+dd {
+  margin-left: 2em;
+  margin-bottom: 0.5em;
+}
+
+/* Blockquotes */
+blockquote {
+  margin: var(--paragraph-spacing) 0;
+  padding: 0 1.5em;
+  border-left: 4px solid var(--border);
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+blockquote p {
+  text-indent: 0;
+}
+
+/* Links */
+a {
+  color: var(--link);
+  text-decoration: underline;
+  text-decoration-color: rgba(41, 128, 185, 0.5);
+  text-underline-offset: 2px;
+  transition: color 0.2s ease, text-decoration-color 0.2s ease;
+}
+
+a:hover {
+  color: var(--link-hover);
+  text-decoration-color: var(--link-hover);
+}
+
+a:visited {
+  color: #8e44ad;
+}
+
+/* Footnotes */
+.footnote {
+  font-size: var(--size-footnotesize);
+  color: var(--text-secondary);
+}
+
+.footnote-ref {
+  font-size: var(--size-scriptsize);
+  vertical-align: super;
+  text-decoration: none;
+}
+
+/* Special text elements */
+.caption {
+  font-size: var(--size-small);
+  color: var(--text-secondary);
+  text-align: left;
+  font-style: normal;
+}
+
+.label {
+  font-size: var(--size-small);
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+/* Document type variations */
+.document-type-article {
+  --line-height-base: 1.1;
+  --paragraph-spacing: 0.25em;
+  --section-spacing: 1.5em;
+}
+
+.document-type-book {
+  --line-height-base: 1.2;
+  --paragraph-spacing: 0.75em;
+  --paragraph-indent: 2em;
+}
+
+.document-type-thesis {
+  --line-height-base: 1.25;
+  --paragraph-spacing: 1em;
+  --paragraph-indent: 2em;
+  text-align: left; /* Override justify for thesis */
+}
+
+/* Responsive typography */
+@media screen and (max-width: 768px) {
+  html {
+    font-size: 14px;
+  }
+  
+  body {
+    text-align: left; /* Disable justify on mobile */
+    hyphens: none;
+  }
+  
+  p {
+    text-indent: 0; /* No indent on mobile */
+  }
+  
+  h1 { font-size: var(--size-Large); }
+  h2 { font-size: var(--size-large); }
+  h3 { font-size: var(--size-normal); }
+}

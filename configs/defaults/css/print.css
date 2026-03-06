@@ -1,0 +1,338 @@
+/*
+ * Print Stylesheet
+ * Print-specific styles for PDF generation and printing
+ */
+
+@media print {
+  /* Page setup */
+  @page {
+    margin: 2.5cm;
+    size: A4;
+    
+    @top-left {
+      content: element(header-left);
+      font-family: var(--font-sans);
+      font-size: 10pt;
+    }
+    
+    @top-center {
+      content: element(header-center);
+      font-family: var(--font-sans);
+      font-size: 10pt;
+    }
+    
+    @top-right {
+      content: element(header-right);
+      font-family: var(--font-sans);
+      font-size: 10pt;
+    }
+    
+    @bottom-left {
+      content: element(footer-left);
+      font-family: var(--font-sans);
+      font-size: 10pt;
+    }
+    
+    @bottom-center {
+      content: element(footer-center);
+      font-family: var(--font-sans);
+      font-size: 10pt;
+    }
+    
+    @bottom-right {
+      content: element(footer-right);
+      font-family: var(--font-sans);
+      font-size: 10pt;
+    }
+  }
+  
+  /* First page (title page) */
+  @page :first {
+    @top-left { content: none; }
+    @top-center { content: none; }
+    @top-right { content: none; }
+    @bottom-left { content: none; }
+    @bottom-center { content: none; }
+    @bottom-right { content: none; }
+  }
+  
+  /* Left and right pages for two-sided printing */
+  @page :left {
+    margin-left: 3cm;
+    margin-right: 2.5cm;
+    
+    @top-left { content: counter(page); }
+    @top-right { content: string(section-title); }
+  }
+  
+  @page :right {
+    margin-left: 2.5cm; 
+    margin-right: 3cm;
+    
+    @top-left { content: string(chapter-title); }
+    @top-right { content: counter(page); }
+  }
+  
+  /* Basic print optimizations */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  
+  body {
+    font-size: 11pt;
+    line-height: 1.2;
+    color: black;
+    background: white;
+  }
+  
+  /* Typography adjustments for print */
+  h1 {
+    font-size: 18pt;
+    page-break-after: avoid;
+    break-after: avoid-page;
+  }
+  
+  h2 {
+    font-size: 16pt;
+    page-break-after: avoid;
+    break-after: avoid-page;
+    margin-top: 24pt;
+    margin-bottom: 12pt;
+  }
+  
+  h3 {
+    font-size: 14pt;
+    page-break-after: avoid;
+    break-after: avoid-page;
+    margin-top: 18pt;
+    margin-bottom: 9pt;
+  }
+  
+  h4, h5, h6 {
+    font-size: 12pt;
+    page-break-after: avoid;
+    break-after: avoid-page;
+    margin-top: 14pt;
+    margin-bottom: 7pt;
+  }
+  
+  /* Paragraph adjustments */
+  p {
+    margin: 6pt 0;
+    text-indent: 12pt;
+    orphans: 3;
+    widows: 3;
+  }
+  
+  /* Page break controls */
+  .page-break-before {
+    page-break-before: always;
+    break-before: page;
+  }
+  
+  .page-break-after {
+    page-break-after: always;
+    break-after: page;
+  }
+  
+  .avoid-page-break {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  
+  /* Hide web-only elements */
+  .no-print, .screen-only {
+    display: none !important;
+  }
+  
+  /* Navigation elements */
+  nav, .sidebar, .toc-sidebar {
+    display: none;
+  }
+  
+  /* Show print-only elements */
+  .print-only {
+    display: block !important;
+  }
+  
+  /* Link handling */
+  a {
+    color: black;
+    text-decoration: underline;
+  }
+  
+  /* Show URLs for important links */
+  a[href^="http"]:not(.citation):not(.no-url)::after {
+    content: " (" attr(href) ")";
+    font-size: 9pt;
+    font-family: var(--font-mono);
+    color: #666;
+  }
+  
+  /* Citations remain as-is */
+  .citation {
+    color: black;
+  }
+  
+  /* Figures and tables */
+  .figure, .table-container {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    margin: 12pt 0;
+  }
+  
+  .figure img {
+    max-width: 100%;
+    height: auto;
+  }
+  
+  .figure-caption, .table-caption {
+    font-size: 10pt;
+    margin-top: 6pt;
+  }
+  
+  /* Tables */
+  table {
+    font-size: 10pt;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  
+  thead {
+    display: table-header-group;
+  }
+  
+  tbody {
+    display: table-row-group;
+  }
+  
+  tr {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  
+  th, td {
+    border: 1px solid black;
+    padding: 4pt 6pt;
+  }
+  
+  /* Mathematics */
+  .MathJax_Display, .katex-display {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  
+  /* Theorem environments */
+  .theorem, .lemma, .definition, .proof {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    border: 1pt solid black;
+    padding: 6pt;
+    margin: 12pt 0;
+  }
+  
+  /* Bibliography */
+  .bibliography {
+    page-break-before: always;
+    break-before: page;
+  }
+  
+  .bibentry {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    font-size: 9pt;
+    margin-bottom: 6pt;
+  }
+  
+  /* Code blocks */
+  pre, code {
+    font-size: 9pt;
+    font-family: 'Courier New', monospace;
+  }
+  
+  pre {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    border: 1pt solid black;
+    padding: 6pt;
+    background: #f5f5f5;
+  }
+  
+  /* Title page */
+  .title-page {
+    page-break-after: always;
+    break-after: page;
+    text-align: center;
+  }
+  
+  /* Table of contents */
+  .toc {
+    page-break-after: always;
+    break-after: page;
+  }
+  
+  .toc a::after {
+    content: leader('.') target-counter(attr(href url), page);
+  }
+  
+  /* Chapters (for books) */
+  .chapter {
+    page-break-before: always;
+    break-before: page;
+    string-set: chapter-title content();
+  }
+  
+  /* Sections */
+  .section {
+    string-set: section-title content();
+  }
+  
+  /* Abstract */
+  .abstract {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    background: none;
+    border: 1pt solid black;
+    padding: 12pt;
+  }
+  
+  /* Footnotes */
+  .footnote {
+    font-size: 8pt;
+    float: footnote;
+  }
+  
+  /* Two-column layout adjustments */
+  .layout-two-column {
+    column-count: 2;
+    column-gap: 20pt;
+    column-fill: balance;
+  }
+  
+  .layout-two-column h1,
+  .layout-two-column .document-title {
+    column-span: all;
+  }
+  
+  /* Quality optimizations */
+  img {
+    max-width: 100%;
+    height: auto;
+    image-rendering: crisp-edges;
+    image-rendering: -webkit-optimize-contrast;
+  }
+  
+  /* Font optimization */
+  body, p, div, span {
+    text-rendering: optimizeLegibility;
+  }
+  
+  /* Prevent awkward breaks */
+  .equation, .figure, .table-container,
+  .theorem, .lemma, .definition, .proof {
+    page-break-inside: avoid;
+    break-inside: avoid-page;
+  }
+}

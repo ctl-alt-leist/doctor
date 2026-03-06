@@ -1,0 +1,147 @@
+# Mathematics Configuration
+# Mathematical notation settings and LaTeX packages for math rendering only
+
+[math]
+# Math renderer for HTML output
+renderer = "mathjax"  # "mathjax", "katex"
+
+# Equation numbering
+equation_numbering = true
+number_by_section = false  # If true: (1.1), (1.2), etc. If false: (1), (2), etc.
+equation_prefix = ""  # Prefix for equation labels (e.g. "eq:" -> eq:maxwell)
+
+# Display math settings
+center_equations = true
+equation_spacing = "1rem"  # Space before/after display equations
+align_equations = "center"  # "center", "left", "right"
+
+# LaTeX packages for mathematical typesetting
+[math.latex_packages]
+# Core math packages (always loaded)
+amsmath = true      # Enhanced math environments
+amssymb = true      # Additional math symbols  
+amsfonts = true     # Additional math fonts
+amsthm = true       # Theorem environments
+
+# Extended math packages
+mathtools = true    # Enhanced amsmath
+xfrac = false       # Nice fractions (\sfrac)
+cancel = true       # Cancellation in equations (\cancel)
+bm = true          # Bold math (\bm)
+
+# Physics packages
+physics = true      # Physics notation (\qty, \dd, \pdv, etc.)
+siunitx = true     # SI units (\si, \SI)
+upgreek = true     # Upright Greek letters
+braket = true      # Dirac notation (\bra, \ket, \braket)
+
+# Chemistry packages (set to true if needed)
+mhchem = false     # Chemical equations
+chemfig = false    # Chemical structure diagrams
+
+# Specialized packages
+tikz = false       # For mathematical diagrams
+pgfplots = false   # For plots and graphs
+
+# Math styling preferences
+[math.styling]
+# Symbol styling
+bold_vectors = true
+italic_variables = true
+upright_operators = true
+upright_differentials = true
+
+# HTML math renderer configuration
+[math.html_config]
+# MathJax settings
+mathjax_version = "3"
+mathjax_extensions = ["tex-ams", "tex-physics", "tex-cancel"]
+
+# KaTeX settings
+katex_version = "latest"
+
+# Math delimiters
+inline_delimiters = ["$...$"]
+display_delimiters = ["$$...$$"]
+
+# Theorem-like environments
+[math.theorems]
+# Enable theorem environments
+enabled = true
+
+# Theorem counter style
+counter_style = "arabic"  # "arabic", "roman", "alph"
+number_by_section = false
+
+# Define theorem-like environments
+[math.theorems.environments]
+theorem = { name = "Theorem", style = "plain", counter = "theorem" }
+lemma = { name = "Lemma", style = "plain", counter = "theorem" }  # Share counter with theorem
+corollary = { name = "Corollary", style = "plain", counter = "theorem" }
+proposition = { name = "Proposition", style = "plain", counter = "theorem" }
+
+definition = { name = "Definition", style = "definition", counter = "definition" }
+example = { name = "Example", style = "definition", counter = "example" }
+remark = { name = "Remark", style = "remark", counter = "remark" }
+note = { name = "Note", style = "remark", counter = "remark" }
+
+proof = { name = "Proof", style = "proof", counter = false }  # No counter for proofs
+
+# Theorem styles
+[math.theorems.styles]
+plain = { font = "italic", header_font = "bold" }
+definition = { font = "normal", header_font = "bold" }
+remark = { font = "normal", header_font = "italic" }
+proof = { font = "normal", header_font = "italic", qed_symbol = "□" }
+
+# Equation environments and shortcuts
+[math.environments]
+# Commonly used equation environments
+align_default = "align"  # Default for multi-line equations: "align", "gather", "split"
+
+# Custom operators (rendered with \operatorname)
+operators = [
+    "sgn", "sinc", "diag", "tr", "rank", "span", "dim", "ker", "im",
+    "Var", "Cov", "E"  # Statistics operators
+]
+
+# Physics notation shortcuts
+[math.physics_notation]
+# Quantum mechanics
+bra_ket_spacing = "0.1em"
+expectation_brackets = "angle"  # "angle" ⟨⟩, "square" [], "round" ()
+
+# Vector notation  
+vector_style = "bold"  # "bold", "arrow", "underline"
+unit_vector_style = "hat"  # "hat", "bold"
+
+# Derivatives
+partial_derivative_style = "partial"  # "partial" ∂, "d" d
+derivative_spacing = "thin"  # Space around d in integrals
+
+# Constants (rendered in upright)
+constants = ["e", "i", "pi", "c", "h", "hbar", "k_B"]
+
+# Document type customizations
+[math.presets]
+
+[math.presets.physics]
+physics = true
+braket = true
+siunitx = true
+upgreek = true
+vector_style = "bold"
+constants = ["e", "i", "pi", "c", "h", "hbar", "k_B", "epsilon_0", "mu_0"]
+
+[math.presets.chemistry]
+mhchem = true
+chemfig = false
+siunitx = true
+upright_differentials = false
+
+[math.presets.pure_math]
+physics = false
+braket = false
+mathtools = true
+amsthm = true
+theorem_environments = true

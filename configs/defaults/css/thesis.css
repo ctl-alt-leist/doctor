@@ -1,0 +1,463 @@
+/*
+ * Thesis Stylesheet
+ * Specific styles for thesis and dissertation documents
+ */
+
+/* Thesis-specific layout */
+.document-type-thesis {
+  /* Formal typography for theses */
+  --line-height-base: 1.25;
+  --paragraph-spacing: 1em;
+  --paragraph-indent: 2em;
+  --section-spacing: 3em;
+  --page-max-width: 850px;
+}
+
+/* Title page formatting */
+.document-type-thesis .title-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  text-align: center;
+  page-break-after: always;
+  padding: 3rem 2rem;
+}
+
+.document-type-thesis .title-page .document-title {
+  font-size: var(--size-LARGE);
+  font-weight: 600;
+  line-height: 1.2;
+  margin: 2rem 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.document-type-thesis .title-page .document-subtitle {
+  font-size: var(--size-Large);
+  font-weight: 400;
+  margin: 1rem 0 3rem 0;
+  color: var(--text-secondary);
+}
+
+.thesis-statement {
+  font-size: var(--size-normal);
+  line-height: 1.4;
+  margin: 3rem auto;
+  max-width: 80%;
+  font-style: italic;
+}
+
+.document-type-thesis .title-page .document-authors {
+  font-size: var(--size-large);
+  font-weight: 500;
+  margin: 2rem 0;
+}
+
+.degree-info {
+  font-size: var(--size-normal);
+  margin: 2rem 0;
+  line-height: 1.4;
+}
+
+.degree-info .degree {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.degree-info .department {
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.degree-info .institution {
+  font-weight: 500;
+  margin-bottom: 1rem;
+}
+
+.document-type-thesis .title-page .document-date {
+  font-size: var(--size-normal);
+  margin-top: auto;
+}
+
+/* Committee and approval page */
+.approval-page {
+  page-break-before: always;
+  break-before: page;
+  min-height: 100vh;
+  padding: 3rem 2rem;
+}
+
+.approval-page h1 {
+  text-align: center;
+  margin-bottom: 3rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.committee-members {
+  margin: 3rem 0;
+}
+
+.committee-member {
+  margin: 2rem 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  border-bottom: 1px solid var(--text-primary);
+  padding-bottom: 0.5rem;
+}
+
+.member-role {
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.signature-line {
+  flex-grow: 1;
+  margin: 0 2rem;
+}
+
+.member-name {
+  white-space: nowrap;
+}
+
+/* Abstract page */
+.document-type-thesis .abstract {
+  page-break-before: always;
+  break-before: page;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.document-type-thesis .abstract h1 {
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 2rem;
+}
+
+.document-type-thesis .abstract p {
+  text-align: justify;
+  text-indent: var(--paragraph-indent);
+  hyphens: auto;
+  margin: var(--paragraph-spacing) 0;
+}
+
+/* Dedication and acknowledgments */
+.dedication, .acknowledgments {
+  page-break-before: always;
+  break-before: page;
+  min-height: 50vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  padding: 3rem 2rem;
+}
+
+.dedication h1, .acknowledgments h1 {
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 3rem;
+}
+
+.dedication p {
+  font-style: italic;
+  font-size: var(--size-large);
+  text-indent: 0;
+  text-align: center;
+}
+
+.acknowledgments p {
+  text-align: justify;
+  text-indent: var(--paragraph-indent);
+  max-width: 80%;
+  margin: 0 auto var(--paragraph-spacing);
+}
+
+/* Table of contents for thesis */
+.document-type-thesis .toc {
+  page-break-before: always;
+  break-before: page;
+}
+
+.document-type-thesis .toc h1 {
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 2rem;
+}
+
+.document-type-thesis .toc li {
+  margin: 0.75rem 0;
+  line-height: 1.4;
+}
+
+/* List of tables and figures */
+.list-of-tables, .list-of-figures {
+  page-break-before: always;
+  break-before: page;
+}
+
+.list-of-tables h1, .list-of-figures h1 {
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 2rem;
+}
+
+/* Chapter formatting */
+.document-type-thesis .chapter {
+  page-break-before: always;
+  break-before: page;
+  margin-top: 0;
+}
+
+.document-type-thesis .chapter-title {
+  font-size: var(--size-LARGE);
+  font-weight: 600;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 3rem 0 2rem 0;
+}
+
+.document-type-thesis .chapter-number {
+  font-size: var(--size-Large);
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 1rem;
+  color: var(--text-secondary);
+}
+
+/* Thesis headings */
+.document-type-thesis h1 {
+  font-size: var(--size-Large);
+  font-weight: 600;
+  margin: 2.5rem 0 1.5rem 0;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.document-type-thesis h2 {
+  font-size: var(--size-large);
+  font-weight: 600;
+  margin: 2rem 0 1rem 0;
+  text-decoration: underline;
+}
+
+.document-type-thesis h3 {
+  font-size: var(--size-normal);
+  font-weight: 600;
+  margin: 1.5rem 0 0.75rem 0;
+  font-style: italic;
+}
+
+.document-type-thesis h4 {
+  font-size: var(--size-normal);
+  font-weight: 500;
+  margin: 1rem 0 0.5rem 0;
+  text-decoration: underline;
+}
+
+/* Paragraph formatting */
+.document-type-thesis p {
+  text-align: justify;
+  text-indent: var(--paragraph-indent);
+  hyphens: auto;
+  orphans: 3;
+  widows: 3;
+  margin: var(--paragraph-spacing) 0;
+}
+
+.document-type-thesis p:first-child,
+.document-type-thesis h1 + p,
+.document-type-thesis h2 + p,
+.document-type-thesis h3 + p,
+.document-type-thesis h4 + p {
+  text-indent: 0;
+}
+
+/* Block quotes in thesis */
+.document-type-thesis blockquote {
+  margin: 2rem 4rem;
+  padding: 1rem;
+  font-size: var(--size-small);
+  line-height: 1.3;
+  border: none;
+  background: none;
+}
+
+.document-type-thesis blockquote p {
+  text-indent: 0;
+  margin: 0.5rem 0;
+}
+
+/* Figures and tables in thesis */
+.document-type-thesis .figure {
+  margin: 2rem auto;
+  text-align: center;
+  page-break-inside: avoid;
+}
+
+.document-type-thesis .figure-caption {
+  font-size: var(--size-small);
+  text-align: justify;
+  margin: 1rem auto 0;
+  max-width: 90%;
+  hyphens: auto;
+  text-indent: 0;
+}
+
+.document-type-thesis .table-container {
+  margin: 2rem auto;
+  page-break-inside: avoid;
+}
+
+.document-type-thesis .table-caption {
+  font-size: var(--size-small);
+  text-align: justify;
+  margin: 0 auto 1rem;
+  max-width: 90%;
+  hyphens: auto;
+  text-indent: 0;
+}
+
+/* Bibliography in thesis */
+.document-type-thesis .bibliography {
+  page-break-before: always;
+  break-before: page;
+}
+
+.document-type-thesis .bibliography h1 {
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 2rem;
+}
+
+.document-type-thesis .bibentry {
+  margin-bottom: 1rem;
+  text-indent: -3rem;
+  padding-left: 3rem;
+  text-align: justify;
+  hyphens: auto;
+}
+
+/* Appendices in thesis */
+.document-type-thesis .appendix {
+  page-break-before: always;
+  break-before: page;
+}
+
+.document-type-thesis .appendix-title {
+  font-size: var(--size-Large);
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 3rem 0 2rem 0;
+}
+
+/* Headers and footers */
+.document-type-thesis .page-header {
+  font-size: var(--size-footnotesize);
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+}
+
+.document-type-thesis .page-footer {
+  font-size: var(--size-footnotesize);
+  text-align: center;
+}
+
+/* Footnotes */
+.document-type-thesis .footnote {
+  font-size: var(--size-footnotesize);
+  line-height: 1.3;
+  text-indent: 0;
+  text-align: justify;
+}
+
+/* Print styles for thesis */
+@media print {
+  @page {
+    margin: 1.5in 1in 1in 1.5in;
+    size: letter;
+  }
+  
+  @page :first {
+    margin: 2in 1in;
+  }
+  
+  @page chapter-start {
+    margin-top: 2in;
+  }
+  
+  .document-type-thesis {
+    font-size: 12pt;
+    line-height: 1.5; /* Often required double spacing */
+  }
+  
+  .document-type-thesis p {
+    margin: 12pt 0;
+  }
+  
+  .document-type-thesis .chapter {
+    page: chapter-start;
+  }
+  
+  .document-type-thesis h1 {
+    page-break-after: avoid;
+    font-size: 14pt;
+  }
+  
+  .document-type-thesis h2 {
+    page-break-after: avoid;
+    font-size: 12pt;
+  }
+  
+  /* Page numbers */
+  .title-page, .approval-page, .abstract,
+  .dedication, .acknowledgments {
+    counter-reset: page;
+  }
+  
+  .toc, .list-of-tables, .list-of-figures {
+    counter-reset: page 1;
+  }
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 1024px) {
+  .document-type-thesis {
+    --page-max-width: 90%;
+    padding: 1rem;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .document-type-thesis p {
+    text-align: left;
+    text-indent: 0;
+    hyphens: none;
+  }
+  
+  .document-type-thesis blockquote {
+    margin: 1rem 2rem;
+  }
+  
+  .committee-member {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+  
+  .thesis-statement {
+    max-width: 95%;
+  }
+}

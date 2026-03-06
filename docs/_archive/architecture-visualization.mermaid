@@ -1,0 +1,60 @@
+graph TD
+    %% Input Sources
+    A[Obsidian Vault] --> B[File Discovery]
+    C[TOML Configs] --> D[Config Loader]
+    E[references.toml] --> F[Bibliography Parser]
+    
+    %% Processing Pipeline
+    B --> G[Content Ingestion]
+    D --> G
+    G --> H[Structure Analysis]
+    H --> I[Cross-Reference Tracking]
+    I --> J[Bibliography Processing]
+    F --> J
+    J --> K[Document Assembly]
+    
+    %% Content Processing Details
+    G --> |Markdown + Metadata| L[Parsed Content]
+    G --> |Wikilinks, Images| M[Asset Catalog]
+    H --> |Headings, TOC| N[Document Structure]
+    I --> |Figures, Equations| O[Reference Map]
+    J --> |Custom Bibliography Engine| P[Citation Database]
+    
+    %% Assembly and Styling
+    K --> Q[Template Engine]
+    D --> |CSS Variables| Q
+    L --> Q
+    N --> Q
+    O --> Q
+    P --> Q
+    
+    %% Output Generation
+    Q --> R[HTML Generator]
+    Q --> S[PDF Generator]
+    
+    %% HTML Path
+    R --> T[MathJax Processing]
+    T --> U[CSS Styling]
+    U --> V[Interactive Features]
+    V --> W[HTML Document]
+    
+    %% PDF Path
+    S --> X[Math Rendering]
+    X --> Y[CSS → PDF Engine]
+    Y --> Z[PDF Document]
+    
+    %% Final Outputs
+    W --> AA[Web Publication]
+    W --> BB[Interactive App]
+    Z --> CC[Print/Submission]
+    
+    %% Styling
+    classDef input fill:#e1f5fe
+    classDef process fill:#f3e5f5
+    classDef output fill:#e8f5e8
+    classDef pipeline fill:#fff3e0
+    
+    class A,C,E input
+    class B,D,F,G,H,I,J,K,Q,R,S process
+    class L,M,N,O,P pipeline
+    class W,Z,AA,BB,CC output

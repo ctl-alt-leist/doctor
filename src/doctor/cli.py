@@ -1,0 +1,550 @@
+"""
+Doctor CLI module
+Command line interface for academic document generation
+"""
+
+import argparse
+import sys
+from pathlib import Path
+from typing import List, Optional
+
+from doctor.configs import load_configs, resolve_config_path
+from doctor.discovery import discover_project_files, get_structure_stats, print_structure_summary
+from doctor.generators import HTMLGenerator, PDFGenerator
+from doctor.ingest import (
+    BibliographyProcessing,
+    ContentIngestion,
+    CrossReferenceTracking,
+    DocumentAssembly,
+    IngestionReport,
+    StructureAnalysis,
+)
+from doctor.tools import ReforgCommand
+
+
+def create_parser() -> argparse.ArgumentParser:
+    """Create the argument parser for Doctor CLI."""
+    parser = argparse.ArgumentParser(
+        prog="doctor",
+        description="Generate professional academic documents from Obsidian-style markdown",
+        epilog="For more information, see: https://github.com/doctor/doctor",
+    )
+
+    # Positional argument: project directory
+    parser.add_argument(
+        "project_path",
+        type=Path,
+        help="Path to the project directory containing markdown files",
+    )
+
+    # Configuration files
+    parser.add_argument(
+        "-c",
+        "--config",
+        dest="config_paths",
+        type=Path,
+        nargs="*",
+        help="Path to config file(s) or directory containing TOML configs. "
+        "If not specified, uses defaults with project-level doctor.toml if present.",
+    )
+
+    # Output file
+    parser.add_argument(
+        "-o",
+        "--output",
+        dest="output_path",
+        type=Path,
+        help="Output file path. Default: <project-name>.pdf in project directory",
+    )
+
+    # Build directory
+    parser.add_argument(
+        "-b",
+        "--build-dir",
+        dest="build_dir",
+        type=Path,
+        help="Build directory for intermediate files. Default: .doctor-build/ in project",
+    )
+
+    # Output formats
+    parser.add_argument(
+        "-f",
+        "--format",
+        dest="formats",
+        choices=["html", "pdf", "docx"],
+        nargs="+",
+        default=["pdf"],
+        help="Output format(s). Default: pdf",
+    )
+
+    # Verbosity
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        action="count",
+        default=0,
+        help="Increase verbosity (-v, -vv, -vvv)",
+    )
+
+    # Quiet mode
+    parser.add_argument(
+        "-q",
+        "--quiet",
+        action="store_true",
+        help="Suppress all output except errors",
+    )
+
+    # Watch mode (future feature)
+    parser.add_argument(
+        "-w",
+        "--watch",
+        action="store_true",
+        help="Watch for file changes and rebuild automatically",
+    )
+
+    # Clean build directory
+    parser.add_argument(
+        "--clean",
+        action="store_true",
+        help="Clean build directory before processing",
+    )
+
+    # Development options
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Show what would be done without actually processing",
+    )
+
+    parser.add_argument(
+        "--list-configs",
+        action="store_true",
+        help="List all configuration files that would be loaded",
+    )
+
+    parser.add_argument(
+        "--list-files",
+        action="store_true",
+        help="List all markdown files that would be processed",
+    )
+
+    parser.add_argument(
+        "--validate",
+        action="store_true",
+        help="Validate project structure without processing",
+    )
+
+    parser.add_argument(
+        "--report",
+        action="store_true",
+        help="Generate ingestion pipeline report showing parsed content, references, and citations",
+    )
+
+    # Reference organizer special flag
+    parser.add_argument(
+        "--reforg",
+        metavar="REFS_FILE",
+        type=Path,
+        help="Reorganize references.toml file instead of generating documents",
+    )
+
+    parser.add_argument(
+        "--reforg-sort-by",
+        choices=["year", "author", "journal", "type", "title"],
+        default="year",
+        help="How to organize references when using --reforg (default: year)",
+    )
+
+    parser.add_argument(
+        "--reforg-reverse",
+        action="store_true",
+        help="Reverse the sort order when using --reforg",
+    )
+
+    parser.add_argument(
+        "--reforg-output",
+        type=Path,
+        help="Output file path for reforg (if not specified, prints to stdout and asks for confirmation)",
+    )
+
+    parser.add_argument(
+        "--reforg-verbose",
+        action="store_true",
+        help="Show detailed information about the reorganization when using --reforg",
+    )
+
+    return parser
+
+
+class CliArgs:
+    """Parsed and validated CLI arguments."""
+
+    def __init__(self, args: argparse.Namespace):
+        self.project_path = args.project_path.resolve()
+        self.config_paths = self._resolve_config_paths(args.config_paths)
+        self.output_path = self._resolve_output_path(args.output_path)
+        self.build_dir = self._resolve_build_dir(args.build_dir)
+        self.formats = args.formats
+        self.verbose = args.verbose
+        self.quiet = args.quiet
+        self.watch = args.watch
+        self.clean = args.clean
+        self.dry_run = args.dry_run
+        self.list_configs = args.list_configs
+        self.list_files = args.list_files
+        self.validate = args.validate
+        self.report = args.report
+
+        # Reforg-specific attributes
+        self.reforg = args.reforg
+        self.reforg_sort_by = args.reforg_sort_by
+        self.reforg_reverse = args.reforg_reverse
+        self.reforg_output = args.reforg_output
+        self.reforg_verbose = args.reforg_verbose
+
+        self._validate()
+
+    def _resolve_config_paths(self, config_paths: Optional[List[Path]]) -> List[Path]:
+        """Resolve and validate configuration paths."""
+        if not config_paths:
+            # Check for project-level doctor.toml
+            project_config = self.project_path / "doctor.toml"
+            if project_config.exists():
+                return [project_config]
+            return []
+
+        resolved_paths = []
+        for path in config_paths:
+            resolved_path = path.resolve()
+
+            if resolved_path.is_dir():
+                # Directory: find all .toml files
+                toml_files = list(resolved_path.glob("*.toml"))
+                resolved_paths.extend(toml_files)
+            elif resolved_path.is_file():
+                # Single file
+                resolved_paths.append(resolved_path)
+            else:
+                raise FileNotFoundError(f"Config path not found: {path}")
+
+        return resolved_paths
+
+    def _resolve_output_path(self, output_path: Optional[Path]) -> Path:
+        """Resolve output file path."""
+        if output_path:
+            return output_path.resolve()
+
+        # Default: <project-name>.pdf in project directory
+        project_name = self.project_path.name
+        return self.project_path / f"{project_name}.pdf"
+
+    def _resolve_build_dir(self, build_dir: Optional[Path]) -> Path:
+        """Resolve build directory path."""
+        if build_dir:
+            return build_dir.resolve()
+
+        # Default: .doctor-build/ in project directory
+        return self.project_path / ".doctor-build"
+
+    def _validate(self):
+        """Validate arguments."""
+        if not self.project_path.exists():
+            raise FileNotFoundError(f"Project directory not found: {self.project_path}")
+
+        if not self.project_path.is_dir():
+            raise NotADirectoryError(f"Project path is not a directory: {self.project_path}")
+
+        # Check for conflicting verbosity options
+        if self.quiet and self.verbose > 0:
+            raise ValueError("Cannot specify both --quiet and --verbose")
+
+        # Validate output path directory exists
+        output_parent = self.output_path.parent
+        if not output_parent.exists():
+            raise FileNotFoundError(f"Output directory not found: {output_parent}")
+
+
+def _resolve_references_file(config, project_path: Path) -> Optional[Path]:
+    """
+    Resolve the references file path from config or project directory.
+
+    Priority:
+    1. Config bibliography.references_file (resolved relative to config file)
+    2. references.toml in project directory (fallback)
+    """
+    # Check config for references_file
+    if hasattr(config, "bibliography") and config.bibliography.references_file:
+        refs = config.bibliography.references_file
+        if isinstance(refs, list):
+            # Use first file if multiple specified
+            refs = refs[0] if refs else "references.toml"
+
+        # Resolve relative to config file location
+        references_file = resolve_config_path(refs)
+        if references_file.exists():
+            return references_file
+
+    # Fallback: check project directory
+    references_file = project_path / "references.toml"
+    if references_file.exists():
+        return references_file
+
+    return None
+
+
+def _run_ingestion_pipeline(structure, args, config):
+    """Run the complete ingestion pipeline and return assembled document."""
+    # Step 1: Content Ingestion (G → L)
+    content_ingestion = ContentIngestion()
+    parsed_files = []
+
+    for md_file in structure.get_ordered_files():
+        try:
+            parsed_content = content_ingestion.ingest_file(md_file)
+            parsed_files.append(parsed_content)
+        except Exception as e:
+            if args.verbose > 0:
+                print(f"Warning: Failed to parse {md_file.relative_path}: {e}")
+
+    # Step 2: Structure Analysis (H → N)
+    structure_analysis = StructureAnalysis(project_root=args.project_path)
+    document_structure = structure_analysis.analyze_files(parsed_files)
+
+    # Step 3: Cross-Reference Tracking (I → O)
+    reference_tracking = CrossReferenceTracking(args.project_path)
+    reference_map = reference_tracking.track_references(document_structure)
+
+    # Step 4: Bibliography Processing (J → P)
+    bib_processing = BibliographyProcessing()
+    references_file = _resolve_references_file(config, args.project_path)
+    citation_database = bib_processing.process_bibliography(parsed_files, references_file)
+
+    # Step 5: Document Assembly (K)
+    assembler = DocumentAssembly(config)
+    assembled_doc = assembler.assemble_document(document_structure, reference_map, citation_database)
+
+    return assembled_doc
+
+
+def _generate_documents(assembled_doc, args, config):
+    """Generate documents in all requested formats."""
+    from doctor.generators.base import OutputFormat
+
+    results = []
+
+    for format_str in args.formats:
+        OutputFormat(format_str)
+
+        # Generate output filename with correct extension
+        if format_str == "html":
+            output_path = args.output_path.with_suffix(".html")
+            html_mode = (
+                getattr(config.output.html, "html_mode", "single")
+                if config and hasattr(config, "output") and hasattr(config.output, "html")
+                else "single"
+            )
+            generator = HTMLGenerator(args.build_dir, html_mode, config)
+        elif format_str == "pdf":
+            output_path = args.output_path.with_suffix(".pdf")
+            generator = PDFGenerator(args.build_dir, config)
+        elif format_str == "docx":
+            output_path = args.output_path.with_suffix(".docx")
+            # TODO: Implement DOCX generator
+            continue  # Skip DOCX for now
+        else:
+            continue  # Unknown format
+
+        # Generate document
+        result = generator.generate(assembled_doc, output_path)
+        results.append(result)
+
+    return results
+
+
+def parse_args(args: Optional[List[str]] = None) -> CliArgs:
+    """Parse command line arguments."""
+    parser = create_parser()
+    parsed_args = parser.parse_args(args)
+
+    try:
+        return CliArgs(parsed_args)
+    except (FileNotFoundError, NotADirectoryError, ValueError) as e:
+        parser.error(str(e))
+
+
+def main():
+    """Main CLI entry point."""
+    try:
+        parser = create_parser()
+        parsed_args = parser.parse_args()
+
+        # Handle reforg flag
+        if parsed_args.reforg:
+            reforg_command = ReforgCommand()
+            # Convert namespace to arg list for reforg command
+            reforg_args = [str(parsed_args.reforg), "--sort-by", parsed_args.reforg_sort_by]
+            if parsed_args.reforg_reverse:
+                reforg_args.append("--reverse")
+            if parsed_args.reforg_output:
+                reforg_args.extend(["--output", str(parsed_args.reforg_output)])
+            if parsed_args.dry_run:
+                reforg_args.append("--dry-run")
+            if parsed_args.reforg_verbose:
+                reforg_args.append("--verbose")
+
+            return reforg_command.run(reforg_args)
+
+        # Handle document generation (default)
+        args = CliArgs(parsed_args)
+
+        # Load configurations (pass project_path for relative path resolution)
+        config = load_configs(args.config_paths, project_path=args.project_path)
+
+        # Discover project files
+        try:
+            structure = discover_project_files(args.project_path)
+        except (FileNotFoundError, ValueError) as e:
+            print(f"Error: {e}", file=sys.stderr)
+            sys.exit(1)
+
+        if args.list_configs:
+            print("Configuration files:")
+            if args.config_paths:
+                for config_path in args.config_paths:
+                    print(f"  {config_path}")
+            else:
+                print("  (using defaults)")
+            return
+
+        if args.list_files:
+            print("Discovered markdown files:")
+            for file in structure.get_ordered_files():
+                print(f"  {file.relative_path}")
+            return
+
+        if args.validate:
+            print_structure_summary(structure)
+            stats = get_structure_stats(structure)
+
+            # Check for potential issues
+            warnings = []
+            if stats["files_in_root"] == 0:
+                warnings.append("No files in project root")
+            if stats["deepest_nesting"] > 3:
+                warnings.append(f"Deep nesting detected ({stats['deepest_nesting']} levels)")
+            if stats["largest_directory"] > 20:
+                warnings.append(f"Large directory detected ({stats['largest_directory']} files)")
+
+            if warnings:
+                print("Warnings:")
+                for warning in warnings:
+                    print(f"  ⚠  {warning}")
+            else:
+                print("✓ Project structure looks good")
+            return
+
+        if args.report:
+            # Run full ingestion pipeline and generate report
+            if not args.quiet:
+                print(f"Generating ingestion report for {structure.total_files} files...")
+
+            # Run ingestion pipeline
+            try:
+                assembled_doc = _run_ingestion_pipeline(structure, args, config)
+
+                # Generate and display report
+                reporter = IngestionReport()
+                reporter.print_report(assembled_doc)
+
+                # Optionally save report to file
+                report_path = args.build_dir / "ingestion-report.txt"
+                args.build_dir.mkdir(parents=True, exist_ok=True)
+                reporter.write_report_file(assembled_doc, report_path)
+
+                if not args.quiet:
+                    print(f"\nReport saved to: {report_path}")
+
+            except Exception as e:
+                print(f"Error generating ingestion report: {e}", file=sys.stderr)
+                if args.verbose > 1:
+                    import traceback
+
+                    traceback.print_exc()
+                sys.exit(1)
+            return
+
+        if args.dry_run:
+            print(f"Would process: {args.project_path}")
+            print(f"Output: {args.output_path}")
+            print(f"Build dir: {args.build_dir}")
+            print(f"Formats: {', '.join(args.formats)}")
+            print(f"Config files: {len(args.config_paths)}")
+            print(f"Markdown files: {structure.total_files}")
+            print_structure_summary(structure)
+            return
+
+        # Process the documents
+        if not args.quiet:
+            print(f"📁 Project: {args.project_path}")
+            print(f"📄 Processing {structure.total_files} markdown files")
+            if args.verbose > 0:
+                print_structure_summary(structure)
+
+        # Run document generation
+        try:
+            if not args.quiet:
+                print("🔄 Processing content and citations...")
+            assembled_doc = _run_ingestion_pipeline(structure, args, config)
+
+            if not args.quiet:
+                print("📝 Generating documents...")
+            results = _generate_documents(assembled_doc, args, config)
+
+            # Report results
+            if not args.quiet:
+                print()  # Empty line for spacing
+            for result in results:
+                if result.success:
+                    size_mb = result.file_size / (1024 * 1024)
+                    print(f"✅ Generated {result.format.upper()}: {result.output_path} ({size_mb:.1f}MB)")
+                    if result.warnings:
+                        for warning in result.warnings:
+                            print(f"   ⚠️  {warning}")
+                else:
+                    print(f"❌ Failed to generate {result.format.upper()}: {result.output_path}")
+                    for error in result.errors:
+                        print(f"   💥 {error}")
+
+            # Summary
+            if not args.quiet:
+                successful_results = [r for r in results if r.success]
+                if successful_results:
+                    total_citations = assembled_doc.total_citations
+                    missing_citations = len(assembled_doc.missing_citations)
+                    print(f"\n📊 Summary: {len(successful_results)} document(s) generated")
+                    if total_citations > 0:
+                        resolved = total_citations - missing_citations
+                        print(f"📚 Citations: {resolved}/{total_citations} resolved")
+
+        except Exception as e:
+            print(f"Error during document generation: {e}", file=sys.stderr)
+            if args.verbose > 1:
+                import traceback
+
+                traceback.print_exc()
+            sys.exit(1)
+
+    except KeyboardInterrupt:
+        print("\nInterrupted by user", file=sys.stderr)
+        sys.exit(1)
+    except Exception as e:
+        if hasattr(args, "verbose") and args.verbose > 1:
+            import traceback
+
+            traceback.print_exc()
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

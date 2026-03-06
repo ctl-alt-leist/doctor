@@ -1,0 +1,190 @@
+# Output Configuration
+# Format-specific settings for HTML and PDF generation
+
+[output]
+# Output directory
+output_dir = "output"
+
+# File naming
+filename_template = "{title}"
+sanitize_filenames = true
+timestamp_suffix = false
+
+# Enabled output formats
+formats = ["html", "pdf"]  # "html", "pdf", "docx"
+
+# Error handling
+stop_on_error = false      # Continue processing other formats if one fails
+verbose_errors = true      # Show detailed error messages
+log_level = "info"         # "debug", "info", "warn", "error"
+
+# PDF Output Configuration (CSS to PDF)
+[output.pdf]
+# PDF generation engine
+engine = "weasyprint"  # "weasyprint", "playwright", "puppeteer"
+
+# PDF settings
+format = "A4"
+margins = "2.5cm"
+embed_fonts = true
+compress = true
+
+# Math rendering for PDF
+[output.pdf.math]
+# Math is rendered to SVG/images for PDF inclusion
+renderer = "mathjax"  # "mathjax", "katex"
+svg_output = true
+dpi = 300
+
+# PDF metadata and features
+[output.pdf.metadata]
+show_bookmarks = true
+colorlinks = true
+linkcolor = "#2980b9"
+citecolor = "#2980b9"
+urlcolor = "#2980b9"
+
+# HTML Output Configuration
+[output.html]
+# HTML version and structure
+html_version = "html5"
+standalone = true      # Generate complete HTML document
+include_toc = true     # Include table of contents
+toc_depth = 3
+sidebar_toc = false    # TOC in sidebar vs inline
+
+# CSS framework/styling
+css_framework = "custom"  # "bootstrap", "bulma", "custom", "none"
+include_css = true
+minify_css = false
+inline_css = false     # Inline CSS vs external file
+
+# JavaScript features
+include_js = true
+mathjax_enabled = true
+syntax_highlighting = true
+responsive_design = true
+
+# HTML structure
+[output.html.structure]
+header_includes = []   # Additional HTML head content
+footer_includes = []   # Additional footer content
+custom_css = []        # Additional CSS files
+custom_js = []         # Additional JS files
+
+# Navigation
+breadcrumbs = false
+prev_next_links = false
+print_button = true
+
+# SEO and metadata
+[output.html.metadata]
+description = ""       # Meta description (from abstract)
+keywords = []          # Meta keywords
+author = ""           # Meta author
+generator = "Doctor"   # Meta generator
+viewport = "width=device-width, initial-scale=1.0"
+
+# Social media (Open Graph)
+og_title = ""
+og_description = ""
+og_image = ""
+og_type = "article"
+
+# Performance and optimization
+[output.html.performance]
+minify_html = false
+compress_images = true
+lazy_load_images = true
+critical_css = false   # Inline critical CSS
+cache_busting = true   # Add version hashes to assets
+
+# Accessibility
+[output.html.accessibility]
+alt_text_required = true
+semantic_html = true
+aria_labels = true
+high_contrast_option = false
+font_size_controls = false
+
+# Web app features
+[output.html.webapp]
+progressive_web_app = false  # Generate PWA manifest
+offline_support = false
+service_worker = false
+
+# DOCX Output (experimental)
+[output.docx]
+enabled = false
+template = ""          # Custom DOCX template
+reference_doc = ""     # Reference document for styling
+
+# Style mapping
+heading_styles = ["Heading 1", "Heading 2", "Heading 3"]
+body_style = "Normal"
+caption_style = "Caption"
+code_style = "Code"
+
+# EPUB Output (experimental) 
+[output.epub]
+enabled = false
+version = "3.0"        # EPUB version
+cover_image = ""
+identifier = ""        # Unique identifier (ISBN, UUID, etc.)
+
+# Metadata
+publisher = ""
+rights = ""
+language = "en"
+
+# Development and debugging
+[output.debug]
+keep_intermediates = false  # Keep LaTeX aux files, etc.
+show_commands = false      # Print commands being executed
+timing = false             # Show timing information
+memory_usage = false       # Show memory usage
+
+# Build cache
+cache_enabled = true
+cache_dir = ".doctor_cache"
+invalidate_cache = "auto"  # "auto", "always", "never"
+
+# Parallel processing
+parallel_builds = true
+max_workers = "auto"       # Number of parallel processes
+
+# Format-specific presets
+[output.presets]
+
+[output.presets.article]
+pdf.runs = 3              # Extra run for complex cross-refs
+html.include_toc = false  # Articles typically don't need TOC
+formats = ["pdf", "html"]
+
+[output.presets.book]
+pdf.runs = 3
+html.include_toc = true
+html.sidebar_toc = true
+formats = ["pdf", "html", "epub"]
+
+[output.presets.thesis]
+pdf.runs = 4              # Multiple runs for complex documents
+pdf.embed_fonts = true
+html.include_toc = true
+html.sidebar_toc = true
+keep_intermediates = true # For debugging complex documents
+
+[output.presets.web_first]
+# Optimized for web publication
+formats = ["html"]
+html.minify_html = true
+html.compress_images = true
+html.critical_css = true
+html.progressive_web_app = true
+
+[output.presets.print_first] 
+# Optimized for print/PDF
+formats = ["pdf"]
+pdf.embed_fonts = true
+pdf.compress = false      # Higher quality for print
+pdf.pdf_version = "1.7"
