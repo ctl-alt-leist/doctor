@@ -33,6 +33,7 @@ class ResolvedReference(BaseModel):
 
 # TODO: The `asset_type` below should be an Enum model `AssetType`
 
+
 class AssetReference(BaseModel):
     """Reference to an external asset (image, table, etc.)."""
 

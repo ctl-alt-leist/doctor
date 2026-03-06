@@ -12,7 +12,7 @@ from typing import Optional
 from pydantic import BaseModel
 
 
-## TODO: We should have the following classes:
+# TODO: We should have the following classes:
 # - MathBlockType: An enum for "in-line" and "display", and may ultimately have others
 # - MathBlock: Essentially what we already have
 

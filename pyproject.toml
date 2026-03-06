@@ -1,11 +1,20 @@
 [project]
 name = "doctor"
 version = "0.1.0"
-description = "Academic document generation from Obsidian notes"
+description = "Academic document generation from markdown"
 readme = "README.md"
 requires-python = ">=3.12"
+license = "MIT"
 authors = [
     { name = "Brian Leist", email = "bleist@protonmail.com" }
+]
+keywords = ["markdown", "academic", "pdf", "latex", "document-generation"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Text Processing :: Markup :: Markdown",
 ]
 dependencies = [
     "click>=8.0",
@@ -32,7 +41,23 @@ build-backend = "uv_build"
 
 [dependency-groups]
 dev = [
-    "pre-commit",
-    "pytest>=9.0.2",
-    "ruff",
+    "pre-commit>=4.0.0",
+    "pytest>=9.0.0",
+    "ruff>=0.9.0",
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["src/tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
+ignore = ["E501"]
+
+[tool.ruff.format]
+quote-style = "double"

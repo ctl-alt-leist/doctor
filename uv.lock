@@ -93,9 +93,9 @@ provides-extras = ["dev"]
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "pre-commit" },
-    { name = "pytest", specifier = ">=9.0.2" },
-    { name = "ruff" },
+    { name = "pre-commit", specifier = ">=4.0.0" },
+    { name = "pytest", specifier = ">=9.0.0" },
+    { name = "ruff", specifier = ">=0.9.0" },
 ]
 
 [[package]]

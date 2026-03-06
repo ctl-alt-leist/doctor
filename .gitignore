@@ -22,8 +22,8 @@ Thumbs.db
 .doctor-build/
 *.doctor-build/
 
-# PDFs
-*.pdf
+# Editor directories
+.obsidian/
 
 # Claude Code guidance
 CLAUDE.md
