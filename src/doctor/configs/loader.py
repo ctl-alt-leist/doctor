@@ -83,9 +83,7 @@ def load_defaults() -> Dict[str, Any]:
     return merged_config
 
 
-def load_config_with_extends(
-    config_path: Path, seen_paths: Optional[Set[Path]] = None
-) -> Dict[str, Any]:
+def load_config_with_extends(config_path: Path, seen_paths: Optional[Set[Path]] = None) -> Dict[str, Any]:
     """
     Load a config file, recursively loading any extended configs first.
 

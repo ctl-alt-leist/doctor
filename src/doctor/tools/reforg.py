@@ -21,7 +21,7 @@ from typing import Any, Dict, List
 
 import toml
 
-from doctor.ingest.bibliography import BibliographyEntry
+from doctor.models.bibliography import BibliographyEntry
 
 
 class ReferenceOrganizer:

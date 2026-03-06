@@ -8,10 +8,10 @@ and inspection purposes.
 from pathlib import Path
 from typing import Dict, List
 
-from doctor.ingest.assembly import AssembledDocument
-from doctor.ingest.bibliography import CitationDatabase
-from doctor.ingest.references import ReferenceMap
-from doctor.ingest.structure import DocumentStructure
+from doctor.models.assembly import AssembledDocument
+from doctor.models.bibliography import CitationDatabase
+from doctor.models.references import ReferenceMap
+from doctor.models.structure import DocumentStructure
 
 
 class IngestionReport:

@@ -73,6 +73,7 @@ dev = [
 [package.dev-dependencies]
 dev = [
     { name = "pre-commit" },
+    { name = "pytest" },
     { name = "ruff" },
 ]
 
@@ -93,6 +94,7 @@ provides-extras = ["dev"]
 [package.metadata.requires-dev]
 dev = [
     { name = "pre-commit" },
+    { name = "pytest", specifier = ">=9.0.2" },
     { name = "ruff" },
 ]
 

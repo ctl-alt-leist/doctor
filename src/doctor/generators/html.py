@@ -197,7 +197,6 @@ class HTMLGenerator(BaseGenerator):
         and consolidates them into a single _figures directory at the output location.
         """
         import shutil
-        from pathlib import Path
 
         # Find the source directory containing the markdown files
         if not document.document_structure.files:
@@ -1530,7 +1529,7 @@ class HTMLGenerator(BaseGenerator):
         # Protect fenced code blocks FIRST (before math, since ``` can contain $)
         def replace_code_block(match):
             nonlocal block_counter
-            language = match.group(1) or ""  # Optional language identifier
+            match.group(1) or ""  # Optional language identifier
             code_content = match.group(2)
             # Convert to HTML code block
             html_code = f"<pre><code>{code_content}</code></pre>"
@@ -1665,8 +1664,13 @@ class HTMLGenerator(BaseGenerator):
             if not p:
                 continue
             # Don't wrap lists or tables in paragraph tags
-            if (p.startswith("<ol>") or p.startswith("<ul>") or p.startswith("</ol>") or p.startswith("</ul>") or
-                p.startswith("<table")):
+            if (
+                p.startswith("<ol>")
+                or p.startswith("<ul>")
+                or p.startswith("</ol>")
+                or p.startswith("</ul>")
+                or p.startswith("<table")
+            ):
                 processed_paragraphs.append(p)
             else:
                 # Convert single newlines to <br> within paragraphs
@@ -1793,11 +1797,10 @@ class HTMLGenerator(BaseGenerator):
 
     def _process_single_table(self, lines, start_index):
         """Process a single markdown table starting at start_index."""
-        import re
 
         i = start_index
         header_line = lines[i].strip()
-        separator_line = lines[i + 1].strip() if i + 1 < len(lines) else ""
+        lines[i + 1].strip() if i + 1 < len(lines) else ""
 
         # Parse header
         header_cells = [cell.strip() for cell in header_line.split("|")[1:-1]]

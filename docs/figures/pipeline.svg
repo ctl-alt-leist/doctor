@@ -1,0 +1,123 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="500" viewBox="0 0 800 500">
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#333"/>
+    </marker>
+    <style>
+      .phase-label { font: bold 14px sans-serif; fill: #333; }
+      .box-label { font: 12px sans-serif; fill: #333; }
+      .small-label { font: 10px sans-serif; fill: #666; }
+      .phase-box { fill: #f8f9fa; stroke: #dee2e6; stroke-width: 2; rx: 8; }
+      .component-box { fill: white; stroke: #333; stroke-width: 1.5; rx: 4; }
+      .data-box { fill: #e7f5ff; stroke: #339af0; stroke-width: 1.5; rx: 4; }
+      .output-box { fill: #d3f9d8; stroke: #40c057; stroke-width: 1.5; rx: 4; }
+      .arrow { stroke: #333; stroke-width: 1.5; fill: none; marker-end: url(#arrowhead); }
+    </style>
+  </defs>
+
+  <!-- Phase backgrounds -->
+  <rect class="phase-box" x="20" y="40" width="140" height="420"/>
+  <rect class="phase-box" x="180" y="40" width="120" height="420"/>
+  <rect class="phase-box" x="320" y="40" width="200" height="420"/>
+  <rect class="phase-box" x="540" y="40" width="120" height="420"/>
+  <rect class="phase-box" x="680" y="40" width="100" height="420"/>
+
+  <!-- Phase labels -->
+  <text class="phase-label" x="90" y="30" text-anchor="middle">Input</text>
+  <text class="phase-label" x="240" y="30" text-anchor="middle">Discovery</text>
+  <text class="phase-label" x="420" y="30" text-anchor="middle">Ingestion</text>
+  <text class="phase-label" x="600" y="30" text-anchor="middle">Generation</text>
+  <text class="phase-label" x="730" y="30" text-anchor="middle">Output</text>
+
+  <!-- Input boxes -->
+  <rect class="component-box" x="40" y="80" width="100" height="40"/>
+  <text class="box-label" x="90" y="105" text-anchor="middle">Markdown</text>
+
+  <rect class="component-box" x="40" y="140" width="100" height="40"/>
+  <text class="box-label" x="90" y="165" text-anchor="middle">references.toml</text>
+
+  <rect class="component-box" x="40" y="200" width="100" height="40"/>
+  <text class="box-label" x="90" y="225" text-anchor="middle">doctor.toml</text>
+
+  <!-- Discovery boxes -->
+  <rect class="component-box" x="195" y="120" width="90" height="50"/>
+  <text class="box-label" x="240" y="140" text-anchor="middle">File</text>
+  <text class="box-label" x="240" y="155" text-anchor="middle">Discovery</text>
+
+  <rect class="data-box" x="195" y="200" width="90" height="50"/>
+  <text class="box-label" x="240" y="220" text-anchor="middle">Ordered</text>
+  <text class="box-label" x="240" y="235" text-anchor="middle">File List</text>
+
+  <!-- Ingestion boxes -->
+  <rect class="component-box" x="340" y="70" width="80" height="45"/>
+  <text class="box-label" x="380" y="90" text-anchor="middle">Content</text>
+  <text class="box-label" x="380" y="103" text-anchor="middle">Parsing</text>
+
+  <rect class="component-box" x="340" y="130" width="80" height="45"/>
+  <text class="box-label" x="380" y="150" text-anchor="middle">Structure</text>
+  <text class="box-label" x="380" y="163" text-anchor="middle">Analysis</text>
+
+  <rect class="component-box" x="340" y="190" width="80" height="45"/>
+  <text class="box-label" x="380" y="210" text-anchor="middle">Reference</text>
+  <text class="box-label" x="380" y="223" text-anchor="middle">Tracking</text>
+
+  <rect class="component-box" x="340" y="250" width="80" height="45"/>
+  <text class="box-label" x="380" y="270" text-anchor="middle">Bibliography</text>
+  <text class="box-label" x="380" y="283" text-anchor="middle">Processing</text>
+
+  <rect class="component-box" x="340" y="330" width="80" height="45"/>
+  <text class="box-label" x="380" y="355" text-anchor="middle">Assembly</text>
+
+  <rect class="data-box" x="440" y="330" width="65" height="45"/>
+  <text class="small-label" x="472" y="348" text-anchor="middle">Assembled</text>
+  <text class="small-label" x="472" y="361" text-anchor="middle">Document</text>
+
+  <!-- Generation boxes -->
+  <rect class="component-box" x="555" y="150" width="90" height="50"/>
+  <text class="box-label" x="600" y="175" text-anchor="middle">HTML Gen</text>
+
+  <rect class="component-box" x="555" y="280" width="90" height="50"/>
+  <text class="box-label" x="600" y="305" text-anchor="middle">PDF Gen</text>
+
+  <!-- Output boxes -->
+  <rect class="output-box" x="695" y="150" width="70" height="50"/>
+  <text class="box-label" x="730" y="180" text-anchor="middle">.html</text>
+
+  <rect class="output-box" x="695" y="280" width="70" height="50"/>
+  <text class="box-label" x="730" y="310" text-anchor="middle">.pdf</text>
+
+  <!-- Arrows: Input to Discovery -->
+  <path class="arrow" d="M 140 100 L 190 140"/>
+
+  <!-- Arrow: Discovery internal -->
+  <path class="arrow" d="M 240 170 L 240 195"/>
+
+  <!-- Arrow: Discovery to Ingestion -->
+  <path class="arrow" d="M 285 225 L 335 92"/>
+
+  <!-- Arrow: references.toml to Bibliography -->
+  <path class="arrow" d="M 140 160 C 200 160 280 272 335 272"/>
+
+  <!-- Arrows: Ingestion internal -->
+  <path class="arrow" d="M 380 115 L 380 125"/>
+  <path class="arrow" d="M 380 175 L 380 185"/>
+  <path class="arrow" d="M 380 235 L 380 245"/>
+  <path class="arrow" d="M 380 295 L 380 325"/>
+  <path class="arrow" d="M 420 352 L 435 352"/>
+
+  <!-- Arrow: Assembly to HTML -->
+  <path class="arrow" d="M 505 352 C 530 352 540 175 550 175"/>
+
+  <!-- Arrow: HTML to PDF -->
+  <path class="arrow" d="M 600 200 L 600 275"/>
+
+  <!-- Arrows: Generation to Output -->
+  <path class="arrow" d="M 645 175 L 690 175"/>
+  <path class="arrow" d="M 645 305 L 690 305"/>
+
+  <!-- Data flow labels -->
+  <text class="small-label" x="470" y="145" text-anchor="middle">ParsedContent</text>
+  <text class="small-label" x="470" y="205" text-anchor="middle">DocumentStructure</text>
+  <text class="small-label" x="455" y="245" text-anchor="middle">ReferenceMap</text>
+  <text class="small-label" x="460" y="303" text-anchor="middle">CitationDatabase</text>
+</svg>

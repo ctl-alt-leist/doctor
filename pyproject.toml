@@ -33,5 +33,6 @@ build-backend = "uv_build"
 [dependency-groups]
 dev = [
     "pre-commit",
+    "pytest>=9.0.2",
     "ruff",
 ]

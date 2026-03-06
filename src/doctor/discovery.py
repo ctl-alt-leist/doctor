@@ -442,12 +442,19 @@ class FileDiscovery:
         # Also handle lowercase roman numeral files (i., ii., etc.)
         elif re.match(r"^(i{1,3}v?|iv|v|vi{0,3}|ix|x)\.?\s", filename.lower()):
             # Sort by the roman numeral alphabetically (comes before "999")
-            file_number = "000" + filename.lower()[:filename.find('.')]
+            file_number = "000" + filename.lower()[: filename.find(".")]
 
         # Return tuple for sorting:
         # (top_dir_category, dir_type, dir_key, subdirectory_key, file_category, file_number, filename)
-        return (directory_sort_key[0], directory_sort_key[1], directory_sort_key[2],
-                subdirectory_sort_key, file_category, file_number, filename.lower())
+        return (
+            directory_sort_key[0],
+            directory_sort_key[1],
+            directory_sort_key[2],
+            subdirectory_sort_key,
+            file_category,
+            file_number,
+            filename.lower(),
+        )
 
     def _mark_chapter_info(self, markdown_files: List[MarkdownFile]) -> None:
         """
