@@ -1,0 +1,30 @@
+[project]
+name = "doctor"
+version = "0.1.0"
+description = "Academic document generation from Obsidian notes"
+readme = "README.md"
+requires-python = ">=3.12"
+authors = [
+    { name = "Brian Leist", email = "bleist@protonmail.com" }
+]
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+    "pre-commit",
+    "pytest",
+    "ruff",
+]
+
+[project.scripts]
+doctor = "doctor:main"
+
+[build-system]
+requires = ["uv_build>=0.9.18,<0.10.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pre-commit",
+    "ruff",
+]
