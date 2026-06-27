@@ -60,7 +60,7 @@ class TestIngestionPipeline:
         references_file = test_project_path / "references.toml"
         bibliography_processing = BibliographyProcessing()
         citation_database = bibliography_processing.process_bibliography(
-            parsed_files, references_file if references_file.exists() else None
+            parsed_files, [references_file] if references_file.exists() else None
         )
 
         # Should handle citations (even if none exist)

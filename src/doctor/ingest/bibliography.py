@@ -44,20 +44,20 @@ class BibliographyProcessing:
         self.citation_counter = 0
 
     def process_bibliography(
-        self, parsed_files: List[ParsedContent], references_file: Optional[Path] = None
+        self, parsed_files: List[ParsedContent], references_files: Optional[List[Path]] = None
     ) -> CitationDatabase:
         """
         Process all citations and build citation database.
 
         Args:
             parsed_files: List of ParsedContent objects with citations
-            references_file: Path to references.toml file
+            references_files: List of paths to references.toml files (entries are merged)
 
         Returns:
             CitationDatabase: Complete citation and bibliography database
         """
-        # Load bibliography entries
-        bib_entries = self._load_bibliography(references_file) if references_file else {}
+        # Load and merge bibliography entries from all files
+        bib_entries = self._load_bibliography(references_files) if references_files else {}
 
         # Process citations from all files
         processed_citations = []
@@ -87,28 +87,47 @@ class BibliographyProcessing:
             missing_citations=missing_citations,
         )
 
-    def _load_bibliography(self, references_file: Path) -> Dict[str, BibliographyEntry]:
-        """Load bibliography entries from references.toml."""
-        if not references_file.exists():
-            return {}
+    def _load_bibliography(self, references_files: List[Path]) -> Dict[str, BibliographyEntry]:
+        """
+        Load and merge bibliography entries from multiple references files.
 
-        try:
-            with open(references_file, "r", encoding="utf-8") as f:
-                data = toml.load(f)
+        Args:
+            references_files: List of paths to references.toml files
 
-            entries = {}
+        Returns:
+            Merged dictionary of bibliography entries from all files
+        """
+        all_entries = {}
 
-            # Check if this is the new [[papers]] array format
-            if "papers" in data and isinstance(data["papers"], list):
-                entries = self._load_papers_array_format(data["papers"])
-            else:
-                # Fall back to old nested TOML format
-                entries = self._load_nested_toml_format(data)
+        for references_file in references_files:
+            if not references_file.exists():
+                logger.warning(f"References file not found: {references_file}")
+                continue
 
-            return entries
+            try:
+                with open(references_file, "r", encoding="utf-8") as f:
+                    data = toml.load(f)
 
-        except Exception as e:
-            raise ValueError(f"Error loading bibliography from {references_file}: {e}") from e
+                # Check if this is the new [[papers]] array format
+                if "papers" in data and isinstance(data["papers"], list):
+                    entries = self._load_papers_array_format(data["papers"])
+                else:
+                    # Fall back to old nested TOML format
+                    entries = self._load_nested_toml_format(data)
+
+                # Merge entries (later files override earlier ones for duplicate keys)
+                for key, entry in entries.items():
+                    if key in all_entries:
+                        logger.debug(f"Reference '{key}' from {references_file} overrides previous entry")
+                    all_entries[key] = entry
+
+                logger.info(f"Loaded {len(entries)} entries from {references_file.name}")
+
+            except Exception as e:
+                logger.error(f"Error loading bibliography from {references_file}: {e}")
+                raise ValueError(f"Error loading bibliography from {references_file}: {e}") from e
+
+        return all_entries
 
     def _load_papers_array_format(self, papers: List[Dict[str, Any]]) -> Dict[str, BibliographyEntry]:
         """
