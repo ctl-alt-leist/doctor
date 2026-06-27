@@ -10,6 +10,10 @@ from typing import Dict, List, Optional
 from pydantic import BaseModel, Field, computed_field, field_validator
 
 
+# Recognized markdown file extensions
+MARKDOWN_EXTENSIONS = {".md", ".markdown", ".mdown", ".mkd"}
+
+
 # Roman numeral mappings for parsing
 ROMAN_NUMERALS = {
     "I": 1,
@@ -334,8 +338,7 @@ class FileDiscovery:
 
     def _is_markdown_file(self, path: Path) -> bool:
         """Check if a file is a markdown file."""
-        markdown_extensions = {".md", ".markdown", ".mdown", ".mkd"}
-        return path.suffix.lower() in markdown_extensions
+        return path.suffix.lower() in MARKDOWN_EXTENSIONS
 
     def _create_markdown_file(self, path: Path) -> MarkdownFile:
         """Create a MarkdownFile object from a path."""
@@ -502,6 +505,48 @@ def discover_project_files(project_path: Path) -> DocumentStructure:
     """
     discovery = FileDiscovery(project_path)
     return discovery.discover_files()
+
+
+def discover_single_file(file_path: Path) -> DocumentStructure:
+    """
+    Build a DocumentStructure from a single markdown file.
+
+    Allows doctor to compile a lone file without a project directory or a
+    doctor.toml. The file's parent directory acts as the project root so that
+    figures and relative references resolve as usual.
+
+    Args:
+        file_path: Path to the markdown file.
+
+    Returns:
+        DocumentStructure: A structure containing the single file.
+
+    Raises:
+        FileNotFoundError: If the file does not exist.
+        ValueError: If the path is not a markdown file.
+    """
+    file_path = file_path.resolve()
+
+    if not file_path.is_file():
+        raise FileNotFoundError(f"Markdown file not found: {file_path}")
+
+    if file_path.suffix.lower() not in MARKDOWN_EXTENSIONS:
+        raise ValueError(f"Not a markdown file: {file_path}")
+
+    project_path = file_path.parent
+    md_file = MarkdownFile(
+        path=file_path,
+        relative_path=Path(file_path.name),
+        name=file_path.name,
+        parent_dir="",
+    )
+
+    return DocumentStructure(
+        files=[md_file],
+        directories={"": [md_file]},
+        total_files=1,
+        project_path=project_path,
+    )
 
 
 def validate_project_structure(project_path: Path) -> DocumentStructure:
