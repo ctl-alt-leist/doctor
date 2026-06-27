@@ -242,19 +242,23 @@ class HTMLGenerator(BaseGenerator):
                 if local_figures != figures_dst:
                     figures_dirs.add(local_figures)
 
-        # Copy all figures from all _figures directories
-        copied_files = set()
+        # Copy all figures from all _figures directories (including subdirectories)
+        copied_items = set()
         for src_dir in figures_dirs:
             try:
-                for src_file in src_dir.iterdir():
-                    if src_file.is_file():
-                        dst_file = figures_dst / src_file.name
+                for src_item in src_dir.iterdir():
+                    dst_item = figures_dst / src_item.name
 
-                        # Handle filename conflicts by keeping the first version found
-                        if src_file.name not in copied_files:
-                            shutil.copy2(src_file, dst_file)
-                            copied_files.add(src_file.name)
-                        # Could add warning here if same filename exists in multiple places
+                    # Handle conflicts by keeping the first version found
+                    if src_item.name not in copied_items:
+                        if src_item.is_file():
+                            shutil.copy2(src_item, dst_item)
+                        elif src_item.is_dir():
+                            # Recursively copy subdirectories
+                            if dst_item.exists():
+                                shutil.rmtree(dst_item)
+                            shutil.copytree(src_item, dst_item)
+                        copied_items.add(src_item.name)
 
             except Exception as e:
                 print(f"Warning: Failed to copy figures from {src_dir}: {e}")

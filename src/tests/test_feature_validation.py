@@ -51,7 +51,7 @@ class TestFeatureValidation:
         references_file = test_project_path / "references.toml"
         bibliography_processing = BibliographyProcessing()
         citation_database = bibliography_processing.process_bibliography(
-            parsed_files, references_file if references_file.exists() else None
+            parsed_files, [references_file] if references_file.exists() else None
         )
 
         # Document Assembly
@@ -149,7 +149,7 @@ class TestFeatureValidation:
         # Process bibliography
         references_file = test_project_path / "references.toml"
         bibliography_processing = BibliographyProcessing()
-        citation_database = bibliography_processing.process_bibliography(parsed_files, references_file)
+        citation_database = bibliography_processing.process_bibliography(parsed_files, [references_file])
 
         # Should find citations
         assert citation_database.total_citations > 0, "Should find citations in documents"

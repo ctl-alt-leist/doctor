@@ -264,32 +264,40 @@ class CliArgs:
             raise FileNotFoundError(f"Output directory not found: {output_parent}")
 
 
-def _resolve_references_file(config, project_path: Path) -> Optional[Path]:
+def _resolve_references_files(config, project_path: Path) -> List[Path]:
     """
-    Resolve the references file path from config or project directory.
+    Resolve all references file paths from config or project directory.
 
     Priority:
     1. Config bibliography.references_file (resolved relative to config file)
+       - Can be a single string or list of strings
+       - All specified files are loaded and merged
     2. references.toml in project directory (fallback)
+
+    Returns:
+        List of existing reference file paths
     """
+    resolved_files = []
+
     # Check config for references_file
     if hasattr(config, "bibliography") and config.bibliography.references_file:
         refs = config.bibliography.references_file
-        if isinstance(refs, list):
-            # Use first file if multiple specified
-            refs = refs[0] if refs else "references.toml"
+        if isinstance(refs, str):
+            refs = [refs]
 
-        # Resolve relative to config file location
-        references_file = resolve_config_path(refs)
-        if references_file.exists():
-            return references_file
+        # Resolve each reference file path
+        for ref_path in refs:
+            resolved = resolve_config_path(ref_path)
+            if resolved.exists():
+                resolved_files.append(resolved)
 
-    # Fallback: check project directory
-    references_file = project_path / "references.toml"
-    if references_file.exists():
-        return references_file
+    # If no files found from config, try fallback
+    if not resolved_files:
+        fallback = project_path / "references.toml"
+        if fallback.exists():
+            resolved_files.append(fallback)
 
-    return None
+    return resolved_files
 
 
 def _run_ingestion_pipeline(structure, args, config):
@@ -316,8 +324,8 @@ def _run_ingestion_pipeline(structure, args, config):
 
     # Step 4: Bibliography Processing (J → P)
     bib_processing = BibliographyProcessing()
-    references_file = _resolve_references_file(config, args.project_path)
-    citation_database = bib_processing.process_bibliography(parsed_files, references_file)
+    references_files = _resolve_references_files(config, args.project_path)
+    citation_database = bib_processing.process_bibliography(parsed_files, references_files)
 
     # Step 5: Document Assembly (K)
     assembler = DocumentAssembly(config)
