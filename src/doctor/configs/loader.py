@@ -6,6 +6,7 @@ Supports hierarchical configuration via 'extends' field:
     extends = "../doctor.toml"  # Inherit from parent config
 """
 
+import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set
 
@@ -29,19 +30,38 @@ def set_config_base_path(path: Optional[Path]) -> None:
     _config_base_path = path
 
 
+def get_user_config_dir() -> Path:
+    """Get the doctor user configuration directory (~/.config/doctor by default)."""
+    override = os.environ.get("DOCTOR_HOME")
+    if override:
+        return Path(override).expanduser().resolve()
+
+    return (Path.home() / ".config" / "doctor").resolve()
+
+
 def get_defaults_dir() -> Path:
-    """Get the path to the default configuration directory."""
-    # In development, use the configs/defaults directory
-    current_file = Path(__file__)
-    repo_root = current_file.parent.parent.parent.parent
-    defaults_dir = repo_root / "configs" / "defaults"
+    """
+    Get the path to the default configuration directory.
 
-    if defaults_dir.exists():
-        return defaults_dir
+    Lookup order, so both global and editable installs resolve:
+    1. $DOCTOR_HOME/defaults (explicit override)
+    2. ~/.config/doctor/defaults (populated by the global installer)
+    3. configs/defaults at the repo root (local development / editable install)
+    """
+    candidates = [
+        get_user_config_dir() / "defaults",
+        Path(__file__).parent.parent.parent.parent / "configs" / "defaults",
+    ]
 
-    # Fallback for packaged installation
-    # This would be implemented for production packaging
-    raise FileNotFoundError("Cannot find default configuration directory")
+    for defaults_dir in candidates:
+        if defaults_dir.exists():
+            return defaults_dir
+
+    searched = ", ".join(str(c) for c in candidates)
+    raise FileNotFoundError(
+        f"Cannot find default configuration directory. Searched: {searched}. "
+        "Run 'make doc-install' to populate ~/.config/doctor/defaults."
+    )
 
 
 def load_toml_file(file_path: Path) -> Dict[str, Any]:

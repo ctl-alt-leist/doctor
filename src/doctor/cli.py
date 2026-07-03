@@ -9,7 +9,13 @@ from pathlib import Path
 from typing import List, Optional
 
 from doctor.configs import load_configs, resolve_config_path
-from doctor.discovery import discover_project_files, get_structure_stats, print_structure_summary
+from doctor.discovery import (
+    MARKDOWN_EXTENSIONS,
+    discover_project_files,
+    discover_single_file,
+    get_structure_stats,
+    print_structure_summary,
+)
 from doctor.generators import HTMLGenerator, PDFGenerator
 from doctor.ingest import (
     BibliographyProcessing,
@@ -19,22 +25,32 @@ from doctor.ingest import (
     IngestionReport,
     StructureAnalysis,
 )
+from doctor.resolve import TargetResolutionError, resolve_target
 from doctor.tools import ReforgCommand
 
 
 def create_parser() -> argparse.ArgumentParser:
     """Create the argument parser for Doctor CLI."""
     parser = argparse.ArgumentParser(
-        prog="doctor",
+        prog="doc",
         description="Generate professional academic documents from Obsidian-style markdown",
         epilog="For more information, see: https://github.com/doctor/doctor",
     )
 
-    # Positional argument: project directory
+    # Positional argument: a markdown file, a project directory, or a name to locate
     parser.add_argument(
-        "project_path",
-        type=Path,
-        help="Path to the project directory containing markdown files",
+        "target",
+        help="Markdown file or project directory to compile. May be a path, or a bare "
+        "name located by searching downward from the current directory (e.g. 'III', 'Galaxies').",
+    )
+
+    # Search depth for resolving a bare name
+    parser.add_argument(
+        "-d",
+        "--depth",
+        type=int,
+        default=3,
+        help="Search depth when resolving a bare name to a file or directory (default: 3)",
     )
 
     # Configuration files
@@ -180,7 +196,14 @@ class CliArgs:
     """Parsed and validated CLI arguments."""
 
     def __init__(self, args: argparse.Namespace):
-        self.project_path = args.project_path.resolve()
+        # The target may be a single markdown file or a project directory.
+        self.target_path = resolve_target(args.target, depth=args.depth)
+        self.is_single_file = self.target_path.is_file()
+
+        # The base directory anchors config, build, output, and reference lookups.
+        # For a single file that is the file's parent; for a project it is the project itself.
+        self.project_path = self.target_path.parent if self.is_single_file else self.target_path
+
         self.config_paths = self._resolve_config_paths(args.config_paths)
         self.output_path = self._resolve_output_path(args.output_path)
         self.build_dir = self._resolve_build_dir(args.build_dir)
@@ -234,7 +257,11 @@ class CliArgs:
         if output_path:
             return output_path.resolve()
 
-        # Default: <project-name>.pdf in project directory
+        # Single file: sibling PDF with the same name and path (note.md -> note.pdf).
+        if self.is_single_file:
+            return self.target_path.with_suffix(".pdf")
+
+        # Directory: <project-name>.pdf in the project directory.
         project_name = self.project_path.name
         return self.project_path / f"{project_name}.pdf"
 
@@ -248,11 +275,12 @@ class CliArgs:
 
     def _validate(self):
         """Validate arguments."""
-        if not self.project_path.exists():
-            raise FileNotFoundError(f"Project directory not found: {self.project_path}")
+        if not self.target_path.exists():
+            raise FileNotFoundError(f"Target not found: {self.target_path}")
 
-        if not self.project_path.is_dir():
-            raise NotADirectoryError(f"Project path is not a directory: {self.project_path}")
+        # A single-file target must be a markdown file.
+        if self.is_single_file and self.target_path.suffix.lower() not in MARKDOWN_EXTENSIONS:
+            raise ValueError(f"Target file is not a markdown file: {self.target_path}")
 
         # Check for conflicting verbosity options
         if self.quiet and self.verbose > 0:
@@ -376,7 +404,7 @@ def parse_args(args: Optional[List[str]] = None) -> CliArgs:
 
     try:
         return CliArgs(parsed_args)
-    except (FileNotFoundError, NotADirectoryError, ValueError) as e:
+    except (FileNotFoundError, NotADirectoryError, ValueError, TargetResolutionError) as e:
         parser.error(str(e))
 
 
@@ -408,9 +436,12 @@ def main():
         # Load configurations (pass project_path for relative path resolution)
         config = load_configs(args.config_paths, project_path=args.project_path)
 
-        # Discover project files
+        # Discover files: a single markdown file, or a full project directory
         try:
-            structure = discover_project_files(args.project_path)
+            if args.is_single_file:
+                structure = discover_single_file(args.target_path)
+            else:
+                structure = discover_project_files(args.project_path)
         except (FileNotFoundError, ValueError) as e:
             print(f"Error: {e}", file=sys.stderr)
             sys.exit(1)
@@ -482,7 +513,7 @@ def main():
             return
 
         if args.dry_run:
-            print(f"Would process: {args.project_path}")
+            print(f"Would process: {args.target_path}")
             print(f"Output: {args.output_path}")
             print(f"Build dir: {args.build_dir}")
             print(f"Formats: {', '.join(args.formats)}")
@@ -493,7 +524,7 @@ def main():
 
         # Process the documents
         if not args.quiet:
-            print(f"📁 Project: {args.project_path}")
+            print(f"📁 Target: {args.target_path}")
             print(f"📄 Processing {structure.total_files} markdown files")
             if args.verbose > 0:
                 print_structure_summary(structure)

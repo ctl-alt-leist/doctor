@@ -116,7 +116,12 @@ class DocumentAssembly:
             frontmatter = first_file.parsed_content.frontmatter
 
             if not title or title == "Untitled Document":
-                title = frontmatter.title or first_file.display_name or title
+                # Prefer frontmatter title, then the document's first H1 header,
+                # then the filename. This lets a lone file title itself from its
+                # top-level header with no config or frontmatter.
+                first_h1 = next(iter(first_file.outline.get_entries_by_level(1)), None)
+                heading_title = first_h1.title if first_h1 else None
+                title = frontmatter.title or heading_title or first_file.display_name or title
             if not author:
                 author = frontmatter.author
             if not date:
