@@ -1,10 +1,6 @@
-# Test Project Configuration
-
-[document]
-type = "thesis"
-title = "A Study of Quantum Field Theory"
-authors = ["Dr. Jane Smith"]
-keywords = ["quantum", "field theory", "physics", "mathematics"]
+# Compilation profile: how a book compiles.
+# The "how" only — style, layout, typography, bibliography, output. Document
+# information (authors, title, keywords) lives in the visible +document.toml.
 
 [document.structure]
 toc_depth = 4      # Parts consume a level, so reach section subheadings

@@ -1,0 +1,12 @@
+# Compilation profile: how an article compiles.
+# Inherits the book profile and overrides a few presentation choices, to exercise
+# the extends mechanism and `doc <target> --as article`.
+
+extends = "book.toml"
+
+[document.structure]
+toc_depth = 2      # a shallower contents for a shorter document
+include_toc = true
+
+[typography]
+base_size = "11px"

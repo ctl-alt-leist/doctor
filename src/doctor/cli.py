@@ -64,6 +64,22 @@ def create_parser() -> argparse.ArgumentParser:
         "If not specified, uses defaults with project-level doctor.toml if present.",
     )
 
+    # Compilation profile (the "how": style/layout/typography), from .doctor/<name>.toml
+    parser.add_argument(
+        "--as",
+        dest="profile",
+        metavar="PROFILE",
+        help="Compilation profile to compile as (e.g. book, article, audiobook). "
+        "Loads .doctor/<PROFILE>.toml. Defaults to the type in +document.toml, else 'book'.",
+    )
+
+    # Document title override (highest priority in title resolution)
+    parser.add_argument(
+        "--title",
+        dest="title",
+        help="Document title. Overrides +document.toml and the filename/dirname fallback.",
+    )
+
     # Output file
     parser.add_argument(
         "-o",
@@ -192,6 +208,41 @@ def create_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def find_doctor_root(start: Path) -> Optional[Path]:
+    """
+    Walk up from ``start`` to the nearest directory that holds a ``.doctor/``
+    directory, and return that directory. Returns None if none is found.
+
+    This is the project anchor: it holds compilation profiles, build scratch,
+    and saved versions, and it lets ``doc`` be run from any file or subdirectory.
+    """
+    current = start.resolve()
+    for candidate in [current, *current.parents]:
+        if (candidate / ".doctor").is_dir():
+            return candidate
+
+    return None
+
+
+def read_document_type(doctor_root: Path) -> Optional[str]:
+    """Read the ``type`` field from ``+document.toml`` (the default profile), if present."""
+    document_file = doctor_root / "+document.toml"
+    if not document_file.exists():
+        return None
+
+    import toml
+
+    try:
+        with open(document_file, "r", encoding="utf-8") as handle:
+            data = toml.load(handle)
+    except Exception:
+        return None
+
+    document = data.get("document", data)
+
+    return document.get("type")
+
+
 class CliArgs:
     """Parsed and validated CLI arguments."""
 
@@ -200,9 +251,15 @@ class CliArgs:
         self.target_path = resolve_target(args.target, depth=args.depth)
         self.is_single_file = self.target_path.is_file()
 
-        # The base directory anchors config, build, output, and reference lookups.
-        # For a single file that is the file's parent; for a project it is the project itself.
+        # The content root is what gets swept: a single file's parent, or the project dir.
         self.project_path = self.target_path.parent if self.is_single_file else self.target_path
+
+        # The .doctor/ anchor holds profiles, build scratch, and versions. It may sit
+        # above the content root (running doc on a chapter deep inside a project).
+        self.doctor_root = find_doctor_root(self.project_path) or self.project_path
+
+        self.profile = getattr(args, "profile", None)
+        self.title = getattr(args, "title", None)
 
         self.config_paths = self._resolve_config_paths(args.config_paths)
         self.output_path = self._resolve_output_path(args.output_path)
@@ -228,13 +285,18 @@ class CliArgs:
         self._validate()
 
     def _resolve_config_paths(self, config_paths: Optional[List[Path]]) -> List[Path]:
-        """Resolve and validate configuration paths."""
+        """
+        Resolve configuration paths.
+
+        With no explicit ``--config``, precedence is:
+
+        1. A ``.doctor/`` anchor: the selected compilation profile
+           (``.doctor/<profile>.toml``) followed by the visible ``+document.toml``
+           (document information layered on top of the profile).
+        2. Legacy: a project-level ``doctor.toml``.
+        """
         if not config_paths:
-            # Check for project-level doctor.toml
-            project_config = self.project_path / "doctor.toml"
-            if project_config.exists():
-                return [project_config]
-            return []
+            return self._resolve_project_configs()
 
         resolved_paths = []
         for path in config_paths:
@@ -251,6 +313,32 @@ class CliArgs:
                 raise FileNotFoundError(f"Config path not found: {path}")
 
         return resolved_paths
+
+    def _resolve_project_configs(self) -> List[Path]:
+        """Assemble the profile + document-info config chain for a project."""
+        doctor_dir = self.doctor_root / ".doctor"
+        paths: List[Path] = []
+
+        if doctor_dir.is_dir():
+            # The profile: --as wins, else +document.toml's type, else "book".
+            profile_name = self.profile or read_document_type(self.doctor_root) or "book"
+            self.profile = profile_name
+            profile_path = doctor_dir / f"{profile_name}.toml"
+            if profile_path.exists():
+                paths.append(profile_path)
+
+            document_path = self.doctor_root / "+document.toml"
+            if document_path.exists():
+                paths.append(document_path)
+
+            return paths
+
+        # Legacy: a single project-level doctor.toml.
+        legacy = self.doctor_root / "doctor.toml"
+        if legacy.exists():
+            return [legacy]
+
+        return []
 
     def _resolve_output_path(self, output_path: Optional[Path]) -> Path:
         """Resolve output file path."""
@@ -270,7 +358,11 @@ class CliArgs:
         if build_dir:
             return build_dir.resolve()
 
-        # Default: .doctor-build/ in project directory
+        # With a .doctor/ anchor, build scratch lives inside it; otherwise fall
+        # back to the legacy .doctor-build/ beside the content.
+        if (self.doctor_root / ".doctor").is_dir():
+            return self.doctor_root / ".doctor" / "build"
+
         return self.project_path / ".doctor-build"
 
     def _validate(self):
@@ -330,6 +422,30 @@ def _resolve_references_files(config, project_path: Path) -> List[Path]:
                 break
 
     return resolved_files
+
+
+def _resolve_title(config, args) -> None:
+    """
+    Apply title resolution in place: ``--title`` wins, then the title already in
+    the config (from ``+document.toml`` or the profile), then a fallback derived
+    from the target — the file stem for a single file, the directory name for a
+    project.
+    """
+    if not (config and getattr(config, "document", None)):
+        return
+
+    if args.title:
+        config.document.title = args.title
+        return
+
+    current = config.document.title
+    if current and current != "Untitled Document":
+        return
+
+    if args.is_single_file:
+        config.document.title = args.target_path.stem
+    else:
+        config.document.title = args.project_path.name
 
 
 def _run_ingestion_pipeline(structure, args, config):
@@ -437,8 +553,12 @@ def main():
         # Handle document generation (default)
         args = CliArgs(parsed_args)
 
-        # Load configurations (pass project_path for relative path resolution)
-        config = load_configs(args.config_paths, project_path=args.project_path)
+        # Load configurations. Config-relative paths (e.g. references_file) resolve
+        # against the project root, even when profiles live in .doctor/.
+        config = load_configs(args.config_paths, project_path=args.project_path, base_path=args.doctor_root)
+
+        # Title resolution: --title > +document.toml/profile title > dir/filename.
+        _resolve_title(config, args)
 
         # Discover files: a single markdown file, or a full project directory
         try:
