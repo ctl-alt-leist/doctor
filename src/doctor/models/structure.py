@@ -83,9 +83,17 @@ class FileStructure(BaseModel):
     section_count: int = 0
     word_count: int = 0
 
-    # Chapter title-page information (arabic-numbered chapter directories)
+    # Structural placement, derived from the directory tree (see ingest/roles.py).
+    # Each *_title is the cleaned tier name; each is_first_* marks the file that
+    # opens that tier, so dividers and title pages are emitted exactly once.
+    part_title: Optional[str] = None
+    is_first_in_part: bool = False
     chapter_title: Optional[str] = None  # Cleaned chapter title (e.g., "Black Holes")
     is_first_in_chapter: bool = False  # True if this is the first file in its chapter directory
+    subchapter_title: Optional[str] = None
+    is_first_in_subchapter: bool = False
+    is_front_matter_tier: bool = False  # File is front matter (lowercase roman / "0." / "Front Matter")
+    is_appendix_tier: bool = False  # File belongs to an appendix directory
 
     @computed_field
     @property

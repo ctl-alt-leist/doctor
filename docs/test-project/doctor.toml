@@ -6,6 +6,10 @@ title = "A Study of Quantum Field Theory"
 authors = ["Dr. Jane Smith"]
 keywords = ["quantum", "field theory", "physics", "mathematics"]
 
+[document.structure]
+toc_depth = 4      # Parts consume a level, so reach section subheadings
+include_toc = true
+
 [typography]
 base_size = "12px"
 

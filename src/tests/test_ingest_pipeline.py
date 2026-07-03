@@ -138,7 +138,7 @@ class TestIngestionPipeline:
             pytest.skip(f"Test project not found at {test_project_path}")
 
         # A chapter file carries frontmatter (README is repo docs, ignored)
-        fm_path = test_project_path / "1. Introduction" / "1. Historical Context.md"
+        fm_path = test_project_path / "I. Foundations" / "1. Introduction" / "1. Historical Context.md"
         if not fm_path.exists():
             pytest.skip("Frontmatter fixture file not found in test project")
 
@@ -149,7 +149,7 @@ class TestIngestionPipeline:
             path=fm_path,
             relative_path=fm_path.relative_to(test_project_path),
             name=fm_path.name,
-            parent_dir="1. Introduction",
+            parent_dir="I. Foundations/1. Introduction",
         )
 
         # Parse the file
