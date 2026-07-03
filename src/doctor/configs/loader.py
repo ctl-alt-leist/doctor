@@ -184,7 +184,11 @@ def deep_merge(base: Dict[str, Any], update: Dict[str, Any]) -> Dict[str, Any]:
     return result
 
 
-def load_configs(configs_paths: Optional[List[Path]] = None, project_path: Optional[Path] = None) -> Config:
+def load_configs(
+    configs_paths: Optional[List[Path]] = None,
+    project_path: Optional[Path] = None,
+    base_path: Optional[Path] = None,
+) -> Config:
     """
     Load configuration with defaults fallback.
 
@@ -192,6 +196,10 @@ def load_configs(configs_paths: Optional[List[Path]] = None, project_path: Optio
         configs_paths: List of user configuration file paths.
                       If None or empty, only defaults are loaded.
         project_path: Project directory for resolving relative paths.
+        base_path: Explicit base directory for resolving config-relative paths
+                   (e.g. references_file). Overrides the config-file location,
+                   which matters when profiles live in ``.doctor/`` but their
+                   relative paths point at the project root.
 
     Returns:
         Config: Validated configuration object
@@ -203,12 +211,12 @@ def load_configs(configs_paths: Optional[List[Path]] = None, project_path: Optio
     # Start with defaults
     config_data = load_defaults()
 
-    # Track the primary config path for relative path resolution
-    primary_config_path = None
-    if configs_paths:
+    # Track the base path for relative path resolution.
+    if base_path:
+        set_config_base_path(base_path.resolve())
+    elif configs_paths:
         # Use the first (primary) config file's directory as base
-        primary_config_path = configs_paths[0].resolve().parent
-        set_config_base_path(primary_config_path)
+        set_config_base_path(configs_paths[0].resolve().parent)
     elif project_path:
         set_config_base_path(project_path.resolve())
 

@@ -1,0 +1,9 @@
+# Document information: the "what". Kept visible beside the writing, and strictly
+# separate from the compilation profiles in .doctor/. The `type` names the default
+# compilation profile; `doc <target> --as <profile>` overrides it.
+
+[document]
+type = "book"
+title = "A Study of Quantum Field Theory"
+authors = ["Dr. Jane Smith"]
+keywords = ["quantum", "field theory", "physics", "mathematics"]

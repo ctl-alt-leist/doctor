@@ -1,2 +1,4 @@
-# Compiled output — not tracked
+# Compiled output and build scratch — not tracked
 *.pdf
+.doctor/build/
+.doctor/versions/

@@ -216,6 +216,10 @@ class DocIgnoreHandler:
         if path.name.startswith("_") or path.name.startswith("+"):
             return True
 
+        # Dot-prefixed paths are infrastructure (.doctor, .git, .obsidian), never content.
+        if path.name.startswith("."):
+            return True
+
         # README files are project documentation, never manuscript content
         if path.name.lower() == "readme.md":
             return True
