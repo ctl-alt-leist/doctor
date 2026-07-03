@@ -109,6 +109,13 @@ def create_parser() -> argparse.ArgumentParser:
         help="Output format(s). Default: pdf",
     )
 
+    # Slides mode: compile the target markdown as a presentation instead of a document
+    parser.add_argument(
+        "--slides",
+        action="store_true",
+        help="Compile the target markdown file as a 16:9 slide deck (slides separated by '---')",
+    )
+
     # Verbosity
     parser.add_argument(
         "-v",
@@ -314,6 +321,7 @@ class CliArgs:
         self.list_files = args.list_files
         self.validate = args.validate
         self.report = args.report
+        self.slides = getattr(args, "slides", False)
 
         # Versioning attributes
         self.save_version = getattr(args, "save_version", None)
@@ -574,6 +582,35 @@ def _compile(args) -> list:
     return results
 
 
+def _handle_slides(args) -> int:
+    """Compile the target markdown file as a slide deck."""
+    from doctor.generators import SlidesGenerator
+
+    if not args.is_single_file:
+        print("Error: --slides expects a single markdown file, not a project directory.", file=sys.stderr)
+        return 1
+
+    deck = args.target_path
+    output_path = args.output_path.with_suffix(".pdf")
+    config = load_configs(args.config_paths, project_path=args.project_path, base_path=args.doctor_root)
+
+    if not args.quiet:
+        print(f"🖼  Compiling slides: {deck.name}")
+
+    generator = SlidesGenerator(args.build_dir, config)
+    result = generator.generate(deck, output_path)
+
+    if result.success:
+        size_mb = result.file_size / (1024 * 1024)
+        print(f"✅ Generated slides: {result.output_path} ({size_mb:.1f}MB)")
+        return 0
+
+    for error in result.errors:
+        print(f"❌ {error}", file=sys.stderr)
+
+    return 1
+
+
 def _handle_versioning(args) -> int:
     """Dispatch --versions / --save-version / --restore / --build-version."""
     from doctor.versioning import VersionStore, version_tagged_output
@@ -740,6 +777,10 @@ def main():
 
         # Handle document generation (default)
         args = CliArgs(parsed_args)
+
+        # Handle slides mode (compile the target as a presentation)
+        if args.slides:
+            return _handle_slides(args)
 
         # Handle versioning commands (snapshot / list / restore / build a version)
         if args.versions or args.save_version is not None or args.restore is not None or args.build_version is not None:

@@ -10,6 +10,7 @@ CSS/HTML-first approach to document generation:
 from doctor.generators.base import BaseGenerator, GenerationResult
 from doctor.generators.html import HTMLGenerator
 from doctor.generators.pdf import PDFGenerator
+from doctor.generators.slides import SlidesGenerator
 
 
 __all__ = [
@@ -17,4 +18,5 @@ __all__ = [
     "GenerationResult",
     "HTMLGenerator",
     "PDFGenerator",
+    "SlidesGenerator",
 ]

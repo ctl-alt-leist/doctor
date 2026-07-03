@@ -22,6 +22,7 @@ class OutputFormat(str, Enum):
     HTML = "html"
     PDF = "pdf"
     DOCX = "docx"
+    SLIDES = "slides"
 
 
 class GenerationResult(BaseModel):
