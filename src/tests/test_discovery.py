@@ -186,6 +186,23 @@ test_*.py
             # A file that merely contains "readme" in its name is still content
             assert not handler.should_ignore(temp_path / "readme-notes.md", temp_path)
 
+    def test_plus_and_underscore_prefixes_excluded(self):
+        """Both auxiliary (+) and scratch (_) prefixes are excluded from the content sweep."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            handler = DocIgnoreHandler(temp_path)
+
+            # Auxiliary "+" — assets and sub-documents (kept in versions, but not content)
+            assert handler.should_ignore(temp_path / "+figures", temp_path)
+            assert handler.should_ignore(temp_path / "+papers", temp_path)
+            assert handler.should_ignore(temp_path / "+references.toml", temp_path)
+
+            # Scratch "_"
+            assert handler.should_ignore(temp_path / "_drafts", temp_path)
+
+            # Ordinary content is not excluded
+            assert not handler.should_ignore(temp_path / "1. Introduction", temp_path)
+
 
 class TestFileDiscovery:
     """Test FileDiscovery functionality."""

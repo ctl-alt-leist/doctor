@@ -15,7 +15,7 @@ base_size = "12px"
 
 [bibliography]
 style = "nature"
-references_file = "references.toml"
+references_file = "+references.toml"
 
 [output]
 formats = ["pdf", "html"]

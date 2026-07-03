@@ -319,11 +319,15 @@ def _resolve_references_files(config, project_path: Path) -> List[Path]:
             if resolved.exists():
                 resolved_files.append(resolved)
 
-    # If no files found from config, try fallback
+    # If no files found from config, try fallbacks in the project root.
+    # "+references.toml" is the auxiliary-prefixed name; plain "references.toml"
+    # is still honored for projects that have not adopted the "+" convention.
     if not resolved_files:
-        fallback = project_path / "references.toml"
-        if fallback.exists():
-            resolved_files.append(fallback)
+        for name in ("+references.toml", "references.toml"):
+            fallback = project_path / name
+            if fallback.exists():
+                resolved_files.append(fallback)
+                break
 
     return resolved_files
 
