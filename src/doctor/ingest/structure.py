@@ -8,10 +8,10 @@ Builds hierarchical document structure from parsed content:
 - Cross-document structure relationships
 """
 
-import re
-from pathlib import Path
-from typing import Dict, List, Optional, Set
+from pathlib import Path, PurePosixPath
+from typing import Dict, List, Optional
 
+from doctor.ingest.roles import Role, assign_roles, file_tiers
 from doctor.models.content import ParsedContent, Section
 from doctor.models.structure import (
     DocumentOutline,
@@ -21,14 +21,27 @@ from doctor.models.structure import (
 )
 
 
-# A chapter directory is prefixed with a non-zero arabic numeral: "1. Introduction".
-# "0." is reserved for front matter, so it is excluded.
-_CHAPTER_DIR_PATTERN = re.compile(r"^[1-9]\d*\.")
+def _directory_set(parsed_files: List[ParsedContent], project_root: Path) -> List[str]:
+    """Every directory (at every level) that holds a file, as POSIX paths relative to the root."""
+    dirs: set[str] = set()
+    for parsed_content in parsed_files:
+        try:
+            relative = parsed_content.source_file.path.relative_to(project_root)
+        except ValueError:
+            continue
+        parts = relative.parent.parts
+        for depth in range(1, len(parts) + 1):
+            dirs.add(str(PurePosixPath(*parts[:depth])))
+
+    return sorted(dirs)
 
 
-def _is_chapter_dir(name: str) -> bool:
-    """True if a directory name marks a chapter (arabic-numbered, e.g. ``3. Black Holes``)."""
-    return bool(_CHAPTER_DIR_PATTERN.match(name.strip()))
+def _relative_posix(parsed_content: ParsedContent, project_root: Path) -> Optional[str]:
+    """A file's POSIX path relative to the project root, or None if outside it."""
+    try:
+        return parsed_content.source_file.path.relative_to(project_root).as_posix()
+    except ValueError:
+        return None
 
 
 class StructureAnalysis:
@@ -61,29 +74,45 @@ class StructureAnalysis:
             DocumentStructure: Complete hierarchical structure
         """
         file_structures = []
-        all_toc_entries = []
 
         # Reset counters for global numbering
         self._reset_counters()
 
-        # Track seen chapter directories so only the first file opens a title page
-        seen_chapters: Set[str] = set()
+        # Assign a structural role to every directory once, then place each file.
+        roles = assign_roles(_directory_set(parsed_files, self.project_root)) if self.project_root else {}
 
-        # Process each file
+        # Track which tiers have already opened, so a divider fires only once.
+        seen_parts: set[str] = set()
+        seen_chapters: set[str] = set()
+        seen_subchapters: set[str] = set()
+
         for parsed_content in parsed_files:
-            file_struct = self._analyze_single_file(parsed_content)
+            rel = _relative_posix(parsed_content, self.project_root) if self.project_root else None
+            tiers = file_tiers(rel, roles) if rel is not None else None
 
-            # Mark the first file of each chapter directory for its title page
-            chapter_info = self._detect_chapter_info(parsed_content, seen_chapters)
-            if chapter_info:
-                file_struct.chapter_title = chapter_info["title"]
-                file_struct.is_first_in_chapter = chapter_info["is_first"]
+            file_struct = self._analyze_single_file(parsed_content, tiers.heading_offset if tiers else 0)
+
+            if tiers is not None:
+                file_struct.part_title = tiers.part_title
+                file_struct.chapter_title = tiers.chapter_title
+                file_struct.subchapter_title = tiers.subchapter_title
+                file_struct.is_front_matter_tier = tiers.is_front_matter
+                file_struct.is_appendix_tier = tiers.is_appendix
+
+                if tiers.part_key and tiers.part_key not in seen_parts:
+                    file_struct.is_first_in_part = True
+                    seen_parts.add(tiers.part_key)
+                if tiers.chapter_key and tiers.chapter_key not in seen_chapters:
+                    file_struct.is_first_in_chapter = True
+                    seen_chapters.add(tiers.chapter_key)
+                if tiers.subchapter_key and tiers.subchapter_key not in seen_subchapters:
+                    file_struct.is_first_in_subchapter = True
+                    seen_subchapters.add(tiers.subchapter_key)
 
             file_structures.append(file_struct)
-            all_toc_entries.extend(file_struct.outline.flat_entries)
 
         # Create hierarchical global outline with directory structure
-        global_outline = self._build_hierarchical_outline(parsed_files)
+        global_outline = self._build_hierarchical_outline(parsed_files, roles)
 
         # Calculate global statistics
         total_sections = sum(file_struct.section_count for file_struct in file_structures)
@@ -96,79 +125,6 @@ class StructureAnalysis:
             total_sections=total_sections,
             max_depth=max_depth,
         )
-
-    def _calculate_directory_depth(self, parsed_content: ParsedContent) -> int:
-        """
-        Calculate the directory depth for a file.
-
-        Depth is the number of parent directories from the project root.
-        For example:
-        - Project/file.md -> depth = 0
-        - Project/Part1/file.md -> depth = 1
-        - Project/Part1/Chapter1/file.md -> depth = 2
-        """
-        if not self.project_root:
-            return 0
-
-        try:
-            relative_path = parsed_content.source_file.path.relative_to(self.project_root)
-            # Number of parent directories (not counting the file itself)
-            parent_parts = relative_path.parent.parts
-            return len(parent_parts)
-        except ValueError:
-            # File is not relative to project root
-            return 0
-
-    def _detect_chapter_info(self, parsed_content: ParsedContent, seen_chapters: Set[str]) -> Optional[Dict[str, any]]:
-        """
-        Detect the chapter a file belongs to, for chapter title pages.
-
-        A chapter is an arabic-numbered directory (``1. Introduction``). The
-        chapter is the outermost such directory on the file's path: Roman-numeral
-        directories are Parts, lowercase-roman are front matter, and single
-        letters are appendices — none of those open a chapter title page here.
-        The first file encountered inside a chapter directory carries the title
-        page for that chapter; the rest do not.
-
-        Args:
-            parsed_content: The parsed content of the file
-            seen_chapters: Set of chapter directory keys already seen (modified in place)
-
-        Returns:
-            Dict with 'title' and 'is_first' keys, or None if the file is not inside a chapter
-        """
-        if not self.project_root:
-            return None
-
-        try:
-            relative_path = parsed_content.source_file.path.relative_to(self.project_root)
-        except ValueError:
-            return None
-
-        parent_parts = relative_path.parent.parts
-        if not parent_parts:
-            return None
-
-        # The chapter is the outermost arabic-numbered directory on the path.
-        chapter_depth = None
-        for depth, part in enumerate(parent_parts):
-            if _is_chapter_dir(part):
-                chapter_depth = depth
-                break
-
-        if chapter_depth is None:
-            return None
-
-        # Key on the path down to the chapter directory, so chapters that clean
-        # to the same title under different parts stay distinct.
-        chapter_key = "/".join(parent_parts[: chapter_depth + 1])
-        chapter_title = self._clean_directory_title(parent_parts[chapter_depth])
-        is_first = chapter_key not in seen_chapters
-
-        if is_first:
-            seen_chapters.add(chapter_key)
-
-        return {"title": chapter_title, "is_first": is_first}
 
     def _adjust_section_levels(self, sections: List[Section], depth_adjustment: int) -> List[Section]:
         """
@@ -198,13 +154,11 @@ class StructureAnalysis:
 
         return adjusted_sections
 
-    def _analyze_single_file(self, parsed_content: ParsedContent) -> FileStructure:
-        """Analyze structure of a single parsed file."""
-        # Calculate directory depth for hierarchical header adjustment
-        dir_depth = self._calculate_directory_depth(parsed_content)
-
-        # Adjust section levels based on directory depth
-        adjusted_sections = self._adjust_section_levels(parsed_content.sections, dir_depth)
+    def _analyze_single_file(self, parsed_content: ParsedContent, heading_offset: int = 0) -> FileStructure:
+        """Analyze structure of a single parsed file, bumping its headings by ``heading_offset``."""
+        # Bump section levels so a file authored with plain #/## sits at the depth
+        # implied by its chapter/sub-chapter nesting (Parts do not add a level).
+        adjusted_sections = self._adjust_section_levels(parsed_content.sections, heading_offset)
 
         # Build TOC entries from adjusted sections
         toc_entries = self._build_toc_entries(adjusted_sections, parsed_content.source_file.path, parent_id=None)
@@ -321,18 +275,6 @@ class StructureAnalysis:
 
         return ""
 
-    def _build_global_outline(self, all_entries: List[TocEntry]) -> DocumentOutline:
-        """Build global outline from all file entries."""
-        # Create a custom outline that stores the flattened entries directly
-        outline = DocumentOutline(
-            entries=[],  # Don't use the hierarchical entries field
-            max_depth=max((entry.level for entry in all_entries), default=0),
-            total_sections=len(all_entries),
-        )
-        # Override the computed flat_entries by storing them directly
-        outline.__dict__["_flat_entries"] = all_entries
-        return outline
-
     def _calculate_max_depth(self, entries: List[TocEntry]) -> int:
         """Calculate maximum depth in TOC hierarchy."""
         if not entries:
@@ -366,121 +308,139 @@ class StructureAnalysis:
             num -= value * count
         return result
 
-    def _build_hierarchical_outline(self, parsed_files: List[ParsedContent]) -> DocumentOutline:
-        """Build hierarchical outline that recognizes directory structure."""
-        from collections import defaultdict
+    def _build_hierarchical_outline(self, parsed_files: List[ParsedContent], roles: Dict[str, Role]) -> DocumentOutline:
+        """
+        Build a nested outline from structural roles: Part > Chapter/Appendix >
+        Sub-chapter > the sections written inside each file.
 
-        # Group files by directory
-        dir_files = defaultdict(list)
+        Files are consumed in their already-sorted order, so each tier is created
+        the first time a file enters it and reused afterwards.
+        """
+        if not self.project_root or not roles:
+            return self._flat_outline(parsed_files)
+
+        any_parts = any(role == Role.PART for role in roles.values())
+        part_base = 1 if any_parts else 0
+
+        top_entries: List[TocEntry] = []
+        part_entries: Dict[str, TocEntry] = {}
+        chapter_entries: Dict[str, TocEntry] = {}
+        subchapter_entries: Dict[str, TocEntry] = {}
+        chapter_counter = 0
+        appendix_ord = ord("A") - 1
+        front_matter_counter = 0
+
         for parsed_content in parsed_files:
-            # Extract directory name from path
-            file_path = parsed_content.source_file.path
-            parent = file_path.parent
-            if parent.name and parent.name != ".":
-                dir_name = parent.name
-            else:
-                dir_name = "Root"
-            dir_files[dir_name].append(parsed_content)
+            rel = _relative_posix(parsed_content, self.project_root)
+            if rel is None:
+                continue
 
-        # Sort directories by natural ordering (0. Front Matter, 1. Chapter, etc.)
-        sorted_dirs = sorted(dir_files.keys(), key=self._natural_sort_key)
+            tiers = file_tiers(rel, roles)
+            source = parsed_content.source_file.path
 
-        all_entries = []
-        directory_level_counter = 0
-        appendix_counter = 0
+            # Front matter with no chapter: unnumbered entries with lowercase-roman numbers.
+            if tiers.is_front_matter and not tiers.chapter_key:
+                fm_entries = self._build_unnumbered_toc_entries(parsed_content.sections, source)
+                for entry in fm_entries:
+                    if entry.level <= 1:
+                        front_matter_counter += 1
+                        entry.number = self._to_roman_numeral(front_matter_counter).lower()
+                top_entries.extend(fm_entries)
+                continue
 
-        for dir_name in sorted_dirs:
-            files = dir_files[dir_name]
+            container = top_entries
 
-            # Determine if this is front matter (starts with "0." or contains "front")
-            is_front_matter = (
-                dir_name.lower().startswith("0.")
-                or "front" in dir_name.lower()
-                or dir_name.lower().startswith("i.")
-                or dir_name.lower().startswith("ii.")
-            )
-
-            # Skip page numbering for front matter directories
-            if not is_front_matter:
-                # Handle appendices with letter numbering
-                if (
-                    dir_name.lower().startswith("a.")
-                    or "appendix" in dir_name.lower()
-                    or "appendices" in dir_name.lower()
-                ):
-                    dir_number = chr(ord("A") + appendix_counter)
-                    appendix_counter += 1
-                else:
-                    directory_level_counter += 1
-                    dir_number = str(directory_level_counter)
-            else:
-                dir_number = ""
-
-            # Handle front matter specially - don't create directory entry
-            if is_front_matter:
-                # Add front matter files directly to TOC (no directory wrapper)
-                front_matter_counter = 0
-                for parsed_content in sorted(files, key=lambda f: self._natural_sort_key(f.source_file.name)):
-                    file_entries = self._build_unnumbered_toc_entries(
-                        parsed_content.sections, parsed_content.source_file.path, parent_id=None
+            if tiers.part_key:
+                pentry = part_entries.get(tiers.part_key)
+                if pentry is None:
+                    pentry = TocEntry(
+                        level=1,
+                        title=tiers.part_title,
+                        id=self._generate_id(f"part-{tiers.part_key}"),
+                        number="",
+                        source_file=source,
+                        line_number=1,
+                        children=[],
                     )
+                    top_entries.append(pentry)
+                    part_entries[tiers.part_key] = pentry
+                container = pentry.children
 
-                    # Apply roman numerals to front matter entries and keep at original levels
-                    for entry in file_entries:
-                        if entry.level <= 2:  # Top-level front matter entries (could be level 1 or 2)
-                            front_matter_counter += 1
-                            entry.number = self._to_roman_numeral(front_matter_counter).lower()
-                    all_entries.extend(file_entries)
+            owner: Optional[TocEntry] = None
+
+            if tiers.chapter_key:
+                centry = chapter_entries.get(tiers.chapter_key)
+                if centry is None:
+                    if tiers.is_appendix:
+                        appendix_ord += 1
+                        number = chr(appendix_ord)
+                    else:
+                        chapter_counter += 1
+                        number = str(chapter_counter)
+                    centry = TocEntry(
+                        level=part_base + 1,
+                        title=tiers.chapter_title,
+                        id=self._generate_id(f"chapter-{tiers.chapter_key}"),
+                        number=number,
+                        source_file=source,
+                        line_number=1,
+                        children=[],
+                    )
+                    centry.__dict__["_counters"] = {0: number}
+                    container.append(centry)
+                    chapter_entries[tiers.chapter_key] = centry
+                container = centry.children
+                owner = centry
+
+            if tiers.subchapter_key:
+                sentry = subchapter_entries.get(tiers.subchapter_key)
+                if sentry is None:
+                    # A sub-chapter continues its chapter's section sequence
+                    # (…, 3.2 section, 3.3 sub-chapter), so numbers never collide.
+                    chapter_counters = owner.__dict__["_counters"]
+                    chapter_counters[1] = chapter_counters.get(1, 0) + 1
+                    for deeper in [lvl for lvl in list(chapter_counters) if lvl > 1]:
+                        del chapter_counters[deeper]
+                    sub_number = f"{chapter_counters[0]}.{chapter_counters[1]}"
+                    sentry = TocEntry(
+                        level=part_base + 2,
+                        title=tiers.subchapter_title,
+                        id=self._generate_id(f"subchapter-{tiers.subchapter_key}"),
+                        number=sub_number,
+                        source_file=source,
+                        line_number=1,
+                        children=[],
+                    )
+                    sentry.__dict__["_counters"] = {0: sub_number}
+                    container.append(sentry)
+                    subchapter_entries[tiers.subchapter_key] = sentry
+                container = sentry.children
+                owner = sentry
+
+            # Attach this file's own section headings under its deepest tier.
+            if owner is not None:
+                self.section_counters = owner.__dict__["_counters"]
+                base = owner.level
             else:
-                # Create directory-level TOC entry for chapters
-                dir_entry = TocEntry(
-                    level=1,  # Chapter level
-                    title=self._clean_directory_title(dir_name),
-                    id=self._generate_id(dir_name),
-                    number=dir_number,
-                    source_file=files[0].source_file.path,  # Use first file as source
-                    line_number=1,
-                    children=[],
-                )
-
-                # Reset section counters for each new chapter/directory
                 self._reset_counters()
+                base = part_base
 
-                # For book format, show appropriate depth (levels 1-3)
-                for parsed_content in sorted(files, key=lambda f: self._natural_sort_key(f.source_file.name)):
-                    file_entries = self._build_toc_entries(
-                        parsed_content.sections, parsed_content.source_file.path, parent_id=dir_entry.id
-                    )
+            file_entries = self._build_toc_entries(parsed_content.sections, source)
+            self._shift_levels(file_entries, base)
+            container.extend(file_entries)
 
-                    # Adjust levels for book TOC structure
-                    def adjust_entry_levels(
-                        entries, depth_limit=3, is_numbered_chapter=bool(dir_number), chapter_number=dir_number
-                    ):
-                        adjusted_entries = []
-                        for entry in entries:
-                            if entry.level <= depth_limit:  # Include levels 1-3
-                                # Shift levels: file H1->chapter H2, file H2->chapter H3, etc.
-                                entry.level += 1
+        return DocumentOutline(
+            entries=top_entries,
+            max_depth=max((self._calculate_max_depth([entry]) for entry in top_entries), default=0),
+            total_sections=len(self._flatten_entries(top_entries)),
+        )
 
-                                # Update numbering for main chapters (not front matter)
-                                if is_numbered_chapter:
-                                    if entry.number:
-                                        entry.number = f"{chapter_number}.{entry.number}"
-                                    else:
-                                        # Generate section number based on level
-                                        entry.number = f"{chapter_number}.1"
-
-                                # Recursively adjust children
-                                entry.children = adjust_entry_levels(
-                                    entry.children, depth_limit, is_numbered_chapter, chapter_number
-                                )
-                                adjusted_entries.append(entry)
-                        return adjusted_entries
-
-                    adjusted_entries = adjust_entry_levels(file_entries)
-                    dir_entry.children.extend(adjusted_entries)
-
-                all_entries.append(dir_entry)
+    def _flat_outline(self, parsed_files: List[ParsedContent]) -> DocumentOutline:
+        """Fallback outline (no project root / no roles): each file's sections in order."""
+        self._reset_counters()
+        all_entries: List[TocEntry] = []
+        for parsed_content in parsed_files:
+            all_entries.extend(self._build_toc_entries(parsed_content.sections, parsed_content.source_file.path))
 
         return DocumentOutline(
             entries=all_entries,
@@ -488,14 +448,12 @@ class StructureAnalysis:
             total_sections=len(self._flatten_entries(all_entries)),
         )
 
-    def _clean_directory_title(self, dir_name: str) -> str:
-        """Clean directory name for display in TOC."""
-        # Remove numbering prefix (e.g., "1. " -> "")
-        import re
-
-        cleaned = re.sub(r"^\d+\.\s*", "", dir_name)
-        cleaned = re.sub(r"^[ivx]+\.\s*", "", cleaned, flags=re.IGNORECASE)
-        return cleaned if cleaned else dir_name
+    def _shift_levels(self, entries: List[TocEntry], delta: int) -> None:
+        """Add ``delta`` to the level of every entry and its descendants, in place."""
+        for entry in entries:
+            entry.level += delta
+            if entry.children:
+                self._shift_levels(entry.children, delta)
 
     def _generate_id(self, title: str) -> str:
         """Generate HTML-safe ID from title."""
@@ -505,17 +463,6 @@ class StructureAnalysis:
         id_str = re.sub(r"[^\w\s-]", "", title.lower())
         id_str = re.sub(r"[\s_-]+", "-", id_str)
         return id_str.strip("-")
-
-    def _natural_sort_key(self, text: str) -> list:
-        """Generate natural sorting key for alphanumeric text."""
-        import re
-
-        def convert(text_part):
-            if text_part.isdigit():
-                return int(text_part)
-            return text_part.lower()
-
-        return [convert(c) for c in re.split(r"(\d+)", text)]
 
     def _reset_counters(self) -> None:
         """Reset section numbering counters."""

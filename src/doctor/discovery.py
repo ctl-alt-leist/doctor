@@ -4,7 +4,7 @@ Discovers and organizes markdown files from project directories
 """
 
 import re
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Dict, List, Optional
 
 from pydantic import BaseModel, Field, computed_field, field_validator
@@ -300,15 +300,17 @@ class FileDiscovery:
                             directories[dir_name] = []
                         directories[dir_name].append(md_file)
 
-            # Sort files using academic document structure rules
-            markdown_files.sort(key=self._academic_sort_key)
+            # Order files by structural role (front matter, Parts/chapters, appendices),
+            # respecting nesting at every level. See ingest/roles.py. Imported lazily
+            # because discovery is loaded before the ingest package finishes initializing.
+            from doctor.ingest.roles import assign_roles, structural_sort_key
+
+            roles = assign_roles(self._directory_paths(markdown_files))
+            markdown_files.sort(key=lambda f: structural_sort_key(self._relative_posix(f), roles))
 
             # Sort files within each directory
             for dir_files in directories.values():
                 dir_files.sort(key=lambda f: self._natural_sort_key(f.name))
-
-            # Mark chapter information for Roman numeral directories
-            self._mark_chapter_info(markdown_files)
 
             return DocumentStructure(
                 files=markdown_files,
@@ -370,126 +372,19 @@ class FileDiscovery:
 
         return result
 
-    def _academic_sort_key(self, markdown_file) -> tuple:
-        """
-        Generate sorting key based on academic document structure rules:
+    def _relative_posix(self, markdown_file: "MarkdownFile") -> str:
+        """The file's POSIX path relative to the project root (the stored relative_path is resolved absolute)."""
+        return markdown_file.path.relative_to(self.project_path).as_posix()
 
-        For Roman numeral chapter directories (I., II., III., etc.):
-        - Sort chapters alphabetically by Roman numeral
-        - Within each chapter: front matter first, then main content, then appendices
+    def _directory_paths(self, markdown_files: List["MarkdownFile"]) -> List[str]:
+        """Every directory, at every level, that holds a discovered file (POSIX, relative to root)."""
+        dirs: set = set()
+        for markdown_file in markdown_files:
+            parts = PurePosixPath(self._relative_posix(markdown_file)).parent.parts
+            for depth in range(1, len(parts) + 1):
+                dirs.add(str(PurePosixPath(*parts[:depth])))
 
-        For other directories:
-        - Front matter first (lowercase roman numerals in filenames: i., ii., iii...)
-        - Main chapters in order (1., 2., 3...)
-        - Appendices last (A., B., C... or "Appendices" directory)
-
-        Roman numeral directories are sorted alphabetically, which works correctly
-        for sequences like I, II, III, IV, V, VI, VII, VIII, VIV (user's convention for IX), X.
-        """
-        import re
-
-        path = str(markdown_file.relative_path)
-        directory = markdown_file.parent_dir
-        filename = markdown_file.name
-
-        # Get the top-level directory (first part of the path)
-        top_level_dir = directory.split("/")[0] if "/" in directory else directory
-
-        # Check if this is a Roman numeral chapter directory
-        roman_prefix = extract_roman_prefix(top_level_dir)
-        is_roman_chapter = roman_prefix is not None
-
-        # File category within a directory: 0=front_matter, 1=main_content, 2=appendices
-        file_category = 1  # default to main content
-
-        # Check if it's front matter (lowercase roman numerals in filenames or "Front Matter" directory)
-        if re.search(r"[/\\][Ff]ront[^/\\]*[Mm]atter", path) or re.match(
-            r"^(i{1,3}v?|iv|v|vi{0,3}|ix|x)\.?\s", filename.lower()
-        ):
-            file_category = 0
-
-        # Check if it's appendix (latin letters or "Appendix/Appendices" directory)
-        elif re.search(r"[/\\][Aa]ppendix|[Aa]ppendices", path) or re.match(r"^[a-z]\.?\s", filename.lower()):
-            file_category = 2
-
-        # Determine directory sorting key
-        if is_roman_chapter:
-            # Roman numeral chapters: sort alphabetically by Roman numeral
-            # Top-level category is 1 (main content) so Roman chapters come after root front matter
-            directory_sort_key = (1, 0, roman_prefix[0])  # (top_category, type=roman, alphabetic)
-        else:
-            # Check for Arabic numeral directory
-            dir_match = re.match(r"^(\d+)\.", top_level_dir)
-            if dir_match:
-                directory_sort_key = (1, 1, dir_match.group(1).zfill(10))  # (top_category, type=arabic, number)
-            elif top_level_dir == "" or re.search(r"[Ff]ront[^/]*[Mm]atter", top_level_dir):
-                # Root files or Front Matter directory → front matter
-                directory_sort_key = (0, 0, "")  # (top_category=front_matter, type, key)
-            elif re.search(r"[Aa]ppendix|[Aa]ppendices", top_level_dir):
-                # Appendix directory
-                directory_sort_key = (2, 0, top_level_dir.lower())  # (top_category=appendix, type, key)
-            else:
-                directory_sort_key = (1, 2, top_level_dir.lower())  # (top_category=main, type=other, alphabetic)
-
-        # Handle subdirectory sorting (for nested structure like "I. Mathematics/1. Linear Algebra")
-        subdirectory_sort_key = ""
-        if "/" in directory:
-            subdirectory = "/".join(directory.split("/")[1:])
-            sub_match = re.match(r"^(\d+)\.", subdirectory)
-            if sub_match:
-                subdirectory_sort_key = sub_match.group(1).zfill(10)
-            else:
-                subdirectory_sort_key = subdirectory.lower()
-
-        # Extract file number for sorting within directories
-        file_number = "999"  # default for non-numbered files
-        file_match = re.match(r"^(\d+)\.", filename)
-        if file_match:
-            file_number = file_match.group(1).zfill(10)
-        # Also handle lowercase roman numeral files (i., ii., etc.)
-        elif re.match(r"^(i{1,3}v?|iv|v|vi{0,3}|ix|x)\.?\s", filename.lower()):
-            # Sort by the roman numeral alphabetically (comes before "999")
-            file_number = "000" + filename.lower()[: filename.find(".")]
-
-        # Return tuple for sorting:
-        # (top_dir_category, dir_type, dir_key, subdirectory_key, file_category, file_number, filename)
-        return (
-            directory_sort_key[0],
-            directory_sort_key[1],
-            directory_sort_key[2],
-            subdirectory_sort_key,
-            file_category,
-            file_number,
-            filename.lower(),
-        )
-
-    def _mark_chapter_info(self, markdown_files: List[MarkdownFile]) -> None:
-        """
-        Mark chapter information for files in Roman numeral directories.
-
-        Sets chapter_title and is_first_in_chapter for files that belong
-        to Roman numeral chapters (e.g., "I. Mathematics", "III. Quantum Mechanics").
-        """
-        seen_chapters: set = set()
-
-        for md_file in markdown_files:
-            # Get the top-level directory
-            directory = md_file.parent_dir
-            top_level_dir = directory.split("/")[0] if "/" in directory else directory
-
-            if not top_level_dir:
-                continue
-
-            # Check if this is a Roman numeral chapter
-            roman_prefix = extract_roman_prefix(top_level_dir)
-            if roman_prefix is not None:
-                # Set the chapter title (the full directory name)
-                md_file.chapter_title = top_level_dir
-
-                # Mark if this is the first file in this chapter
-                if top_level_dir not in seen_chapters:
-                    md_file.is_first_in_chapter = True
-                    seen_chapters.add(top_level_dir)
+        return sorted(dirs)
 
 
 def discover_project_files(project_path: Path) -> DocumentStructure:

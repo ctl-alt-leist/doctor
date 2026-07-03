@@ -62,8 +62,9 @@ class TestFeatureValidation:
         """Test that file discovery finds all expected files."""
         file_structure = discover_project_files(test_project_path)
 
-        # Should find the 6 chapter markdown files; README.md is ignored
-        assert file_structure.total_files == 6
+        # Nine content files across front matter, Parts, chapters, a sub-chapter,
+        # and an appendix; README.md is ignored.
+        assert file_structure.total_files == 9
 
         # Verify specific files exist, and that README is excluded
         file_names = [f.name for f in file_structure.files]
@@ -172,7 +173,7 @@ class TestFeatureValidation:
         assembled_doc = self.full_pipeline_result(test_project_path)
 
         # Should have proper document structure (6 chapter files; README ignored)
-        assert assembled_doc.total_files == 6
+        assert assembled_doc.total_files == 9
         assert assembled_doc.total_sections > 40, "Should find many sections"
 
         # Should have table of contents
@@ -223,7 +224,7 @@ class TestFeatureValidation:
 
         # Statistics should be reasonable
         stats = assembled_doc.validation_summary
-        assert stats["total_files"] == 6
+        assert stats["total_files"] == 9
         assert stats["total_sections"] > 40
         assert stats["total_citations"] > 0
 

@@ -883,7 +883,29 @@ class HTMLGenerator(BaseGenerator):
             color: #666;
         }
 
-        /* Chapter Title Page - for Roman numeral chapters */
+        /* Part Divider - full page, for Roman-numeral Part directories */
+        .part-title-page {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 80vh;
+            text-align: center;
+            page-break-before: always;
+            page-break-after: always;
+        }
+
+        .part-title-page h1 {
+            font-size: 2.8rem;
+            font-weight: bold;
+            color: #000;
+            margin: 0;
+            padding: 0;
+            border-bottom: 2px solid #000;
+            padding-bottom: 0.3em;
+        }
+
+        /* Chapter Title Page - full page, for arabic-numbered Chapter directories */
         .chapter-title-page {
             display: flex;
             flex-direction: column;
@@ -903,7 +925,17 @@ class HTMLGenerator(BaseGenerator):
             padding: 0;
         }
 
+        /* Sub-chapter heading - inline, introduces a chapter-within-a-chapter */
+        .subchapter-heading {
+            font-size: 1.6rem;
+            font-weight: bold;
+            margin-top: 1.5em;
+            padding-bottom: 0.2em;
+            border-bottom: 1px solid #999;
+        }
+
         @media print {
+            .part-title-page,
             .chapter-title-page {
                 height: 100vh;
                 page-break-before: always;
@@ -1283,17 +1315,23 @@ class HTMLGenerator(BaseGenerator):
 
     <main class="document-body">
         {% for file_struct in document_structure.files %}
-        {% set is_fm = is_front_matter(file_struct) %}
-        {% set fm_class = ' front-matter' if is_fm else ' main-content' %}
-        {% set has_chapter_page = file_struct.is_first_in_chapter and file_struct.chapter_title %}
-        {% set pb_class = '' if has_chapter_page else (' page-break' if is_new_part(file_struct) else '') %}
-        {% if has_chapter_page %}
+        {% set fm_class = ' front-matter' if file_struct.is_front_matter_tier else ' main-content' %}
+        {% if file_struct.is_first_in_part and file_struct.part_title %}
+        <!-- Part Divider -->
+        <div class="part-title-page">
+            <h1>{{ file_struct.part_title }}</h1>
+        </div>
+        {% endif %}
+        {% if file_struct.is_first_in_chapter and file_struct.chapter_title %}
         <!-- Chapter Title Page -->
         <div class="chapter-title-page">
             <h1>{{ file_struct.chapter_title }}</h1>
         </div>
         {% endif %}
-        <div class="file-content{{ fm_class }}{{ pb_class }}">
+        <div class="file-content{{ fm_class }}">
+            {% if file_struct.is_first_in_subchapter and file_struct.subchapter_title %}
+            <h2 class="subchapter-heading">{{ file_struct.subchapter_title }}</h2>
+            {% endif %}
             {{ render_sections(file_struct.parsed_content.sections) }}
         </div>
         {% endfor %}

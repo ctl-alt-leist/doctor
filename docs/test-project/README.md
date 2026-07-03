@@ -12,18 +12,28 @@ not manuscript content — so nothing here appears in the compiled PDF.
 doctor.toml               compilation + document settings
 references.toml           bibliography entries
 _figures/  _tables/       assets (underscore-ignored by discovery)
-1. Introduction/          chapter (arabic-numbered directory)
-2. Quantum Field Theory/
-3. Black Holes/
+i. Preface.md             front matter (lowercase-roman prefix)
+I. Foundations/           Part (uppercase-Roman directory)
+  1. Introduction/        chapter (arabic-numbered directory)
+  2. Quantum Field Theory/
+II. Frontiers/            Part
+  3. Black Holes/         chapter
+    3. Toy Models/        sub-chapter (arabic nested in a chapter)
+A. Mathematical Reference/  appendix (single-letter directory)
 ```
 
 ## What it exercises
 
-- **Chapter title pages** — each numbered directory opens with a title page
-  taken from its cleaned name (`3. Black Holes` → "Black Holes").
-- **Heading-level bump** — a chapter file's `#` renders one level deeper because
-  the file sits inside a chapter directory.
-- **Math, citations, figures, cross-references** across the chapter files.
+- **Front matter** — `i. Preface.md` renders ahead of the body, unnumbered.
+- **Part dividers** — each Roman-numbered directory opens a full-page divider.
+- **Chapter title pages** — each numbered directory opens with a title page from
+  its cleaned name (`3. Black Holes` → "Black Holes").
+- **Sub-chapters** — an arabic directory nested inside a chapter gets an inline
+  heading and bumps its files' headings one extra level.
+- **Appendices** — a single-letter directory is title-paged and lettered (A, …).
+- **Heading-level bump** — a file's `#` renders at the depth implied by its
+  place in the tree; Parts do not add a level.
+- **Math, citations, figures, cross-references** across the content files.
 
 ## Building
 
