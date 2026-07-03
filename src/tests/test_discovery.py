@@ -172,6 +172,20 @@ test_*.py
             assert handler.should_ignore(temp_path / "_private", temp_path)
             assert not handler.should_ignore(temp_path / "normal.md", temp_path)
 
+    def test_readme_is_ignored(self):
+        """README files are project documentation, never manuscript content."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            handler = DocIgnoreHandler(temp_path)
+
+            # README is ignored at any casing, including inside subdirectories
+            assert handler.should_ignore(temp_path / "README.md", temp_path)
+            assert handler.should_ignore(temp_path / "readme.md", temp_path)
+            assert handler.should_ignore(temp_path / "1. Introduction" / "README.md", temp_path)
+
+            # A file that merely contains "readme" in its name is still content
+            assert not handler.should_ignore(temp_path / "readme-notes.md", temp_path)
+
 
 class TestFileDiscovery:
     """Test FileDiscovery functionality."""
@@ -226,11 +240,11 @@ class TestFileDiscovery:
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
 
-            # Create a simple structure
+            # Create a simple structure (avoid README, which is ignored by design)
             (temp_path / "docs").mkdir()
 
-            with open(temp_path / "readme.md", "w") as f:
-                f.write("# README")
+            with open(temp_path / "intro.md", "w") as f:
+                f.write("# Intro")
 
             with open(temp_path / "docs" / "guide.md", "w") as f:
                 f.write("# Guide")

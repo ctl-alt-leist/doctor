@@ -69,12 +69,12 @@ class TestChapterTitlePages:
         assert first_flags.count(True) == 1
         assert first_flags.count(False) == 1
 
-    def test_root_file_has_no_chapter_title_page(self):
+    def test_root_readme_is_not_document_content(self):
         structure = self._analyze()
 
-        root_files = [f for f in structure.files if f.file_path.parent == TEST_PROJECT]
-
-        assert root_files, "A file should be discovered at the project root"
-        for file_struct in root_files:
-            assert file_struct.chapter_title is None
-            assert file_struct.is_first_in_chapter is False
+        # README.md is ignored, so nothing sits at the project root and every
+        # discovered file belongs to a chapter directory.
+        for file_struct in structure.files:
+            assert file_struct.file_path.name.lower() != "readme.md"
+            assert file_struct.file_path.parent != TEST_PROJECT
+            assert file_struct.chapter_title is not None
