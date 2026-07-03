@@ -495,6 +495,59 @@ def _resolve_title(config, args) -> None:
         config.document.title = args.project_path.name
 
 
+def _outline_for(path: Path):
+    """Build the document outline for a directory or single file (no generation)."""
+    resolved = path.resolve()
+    if resolved.is_file():
+        structure = discover_single_file(resolved)
+        project_root = resolved.parent
+    else:
+        structure = discover_project_files(resolved)
+        project_root = resolved
+
+    content_ingestion = ContentIngestion()
+    parsed_files = [content_ingestion.ingest_file(f) for f in structure.get_ordered_files()]
+    document_structure = StructureAnalysis(project_root=project_root).analyze_files(parsed_files)
+
+    return document_structure.global_outline
+
+
+def _print_toc_entries(entries, max_depth: int, depth: int = 1) -> None:
+    for entry in entries:
+        indent = "  " * (depth - 1)
+        number = f"{entry.number} " if entry.number else ""
+        print(f"{indent}{number}{entry.title}")
+        if entry.children and depth < max_depth:
+            _print_toc_entries(entry.children, max_depth, depth + 1)
+
+
+def _run_toc(argv: List[str]) -> int:
+    """
+    ``doc toc [-L DEPTH] [PATH]`` — list a project as a table of contents,
+    like ``tree`` but showing the document's structure. Default depth covers the
+    Parts/chapters and their file-level headings; deeper descends into
+    sub-headings within files.
+    """
+    parser = argparse.ArgumentParser(prog="doc toc", description="List a project as a table of contents")
+    parser.add_argument("path", nargs="?", default=".", help="Project directory or file (default: current directory)")
+    parser.add_argument("-L", "--depth", type=int, default=3, help="Levels of the outline to show (default: 3)")
+    toc_args = parser.parse_args(argv)
+
+    target = Path(toc_args.path)
+    if not target.exists():
+        print(f"Error: path not found: {target}", file=sys.stderr)
+        return 1
+
+    outline = _outline_for(target)
+    if not outline.entries:
+        print("(no structure found)")
+        return 0
+
+    _print_toc_entries(outline.entries, max(1, toc_args.depth))
+
+    return 0
+
+
 def _compile(args) -> list:
     """Load config, discover, run the pipeline, and generate outputs for ``args``."""
     config = load_configs(args.config_paths, project_path=args.project_path, base_path=args.doctor_root)
@@ -662,6 +715,10 @@ def parse_args(args: Optional[List[str]] = None) -> CliArgs:
 def main():
     """Main CLI entry point."""
     try:
+        # The `toc` subcommand is handled by its own parser before the main one.
+        if len(sys.argv) > 1 and sys.argv[1] == "toc":
+            return _run_toc(sys.argv[2:])
+
         parser = create_parser()
         parsed_args = parser.parse_args()
 
