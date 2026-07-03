@@ -8,10 +8,10 @@ Builds hierarchical document structure from parsed content:
 - Cross-document structure relationships
 """
 
+import re
 from pathlib import Path
 from typing import Dict, List, Optional, Set
 
-from doctor.discovery import extract_roman_prefix
 from doctor.models.content import ParsedContent, Section
 from doctor.models.structure import (
     DocumentOutline,
@@ -19,6 +19,16 @@ from doctor.models.structure import (
     FileStructure,
     TocEntry,
 )
+
+
+# A chapter directory is prefixed with a non-zero arabic numeral: "1. Introduction".
+# "0." is reserved for front matter, so it is excluded.
+_CHAPTER_DIR_PATTERN = re.compile(r"^[1-9]\d*\.")
+
+
+def _is_chapter_dir(name: str) -> bool:
+    """True if a directory name marks a chapter (arabic-numbered, e.g. ``3. Black Holes``)."""
+    return bool(_CHAPTER_DIR_PATTERN.match(name.strip()))
 
 
 class StructureAnalysis:
@@ -56,14 +66,14 @@ class StructureAnalysis:
         # Reset counters for global numbering
         self._reset_counters()
 
-        # Track seen chapters for Roman numeral chapter detection
+        # Track seen chapter directories so only the first file opens a title page
         seen_chapters: Set[str] = set()
 
         # Process each file
         for parsed_content in parsed_files:
             file_struct = self._analyze_single_file(parsed_content)
 
-            # Detect Roman numeral chapters
+            # Mark the first file of each chapter directory for its title page
             chapter_info = self._detect_chapter_info(parsed_content, seen_chapters)
             if chapter_info:
                 file_struct.chapter_title = chapter_info["title"]
@@ -111,44 +121,54 @@ class StructureAnalysis:
 
     def _detect_chapter_info(self, parsed_content: ParsedContent, seen_chapters: Set[str]) -> Optional[Dict[str, any]]:
         """
-        Detect if a file belongs to a Roman numeral chapter.
+        Detect the chapter a file belongs to, for chapter title pages.
+
+        A chapter is an arabic-numbered directory (``1. Introduction``). The
+        chapter is the outermost such directory on the file's path: Roman-numeral
+        directories are Parts, lowercase-roman are front matter, and single
+        letters are appendices — none of those open a chapter title page here.
+        The first file encountered inside a chapter directory carries the title
+        page for that chapter; the rest do not.
 
         Args:
             parsed_content: The parsed content of the file
-            seen_chapters: Set of chapter titles already seen (modified in place)
+            seen_chapters: Set of chapter directory keys already seen (modified in place)
 
         Returns:
-            Dict with 'title' and 'is_first' keys, or None if not a Roman numeral chapter
+            Dict with 'title' and 'is_first' keys, or None if the file is not inside a chapter
         """
         if not self.project_root:
             return None
 
         try:
             relative_path = parsed_content.source_file.path.relative_to(self.project_root)
-            parent_parts = relative_path.parent.parts
-
-            if not parent_parts:
-                return None
-
-            # Get the top-level directory
-            top_level_dir = parent_parts[0]
-
-            # Check if it's a Roman numeral chapter
-            roman_prefix = extract_roman_prefix(top_level_dir)
-            if roman_prefix is None:
-                return None
-
-            # This is a Roman numeral chapter
-            chapter_title = top_level_dir
-            is_first = chapter_title not in seen_chapters
-
-            if is_first:
-                seen_chapters.add(chapter_title)
-
-            return {"title": chapter_title, "is_first": is_first}
-
         except ValueError:
             return None
+
+        parent_parts = relative_path.parent.parts
+        if not parent_parts:
+            return None
+
+        # The chapter is the outermost arabic-numbered directory on the path.
+        chapter_depth = None
+        for depth, part in enumerate(parent_parts):
+            if _is_chapter_dir(part):
+                chapter_depth = depth
+                break
+
+        if chapter_depth is None:
+            return None
+
+        # Key on the path down to the chapter directory, so chapters that clean
+        # to the same title under different parts stay distinct.
+        chapter_key = "/".join(parent_parts[: chapter_depth + 1])
+        chapter_title = self._clean_directory_title(parent_parts[chapter_depth])
+        is_first = chapter_key not in seen_chapters
+
+        if is_first:
+            seen_chapters.add(chapter_key)
+
+        return {"title": chapter_title, "is_first": is_first}
 
     def _adjust_section_levels(self, sections: List[Section], depth_adjustment: int) -> List[Section]:
         """

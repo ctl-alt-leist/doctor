@@ -1285,8 +1285,9 @@ class HTMLGenerator(BaseGenerator):
         {% for file_struct in document_structure.files %}
         {% set is_fm = is_front_matter(file_struct) %}
         {% set fm_class = ' front-matter' if is_fm else ' main-content' %}
-        {% set pb_class = ' page-break' if is_new_part(file_struct) else '' %}
-        {% if file_struct.is_first_in_chapter and file_struct.chapter_title %}
+        {% set has_chapter_page = file_struct.is_first_in_chapter and file_struct.chapter_title %}
+        {% set pb_class = '' if has_chapter_page else (' page-break' if is_new_part(file_struct) else '') %}
+        {% if has_chapter_page %}
         <!-- Chapter Title Page -->
         <div class="chapter-title-page">
             <h1>{{ file_struct.chapter_title }}</h1>

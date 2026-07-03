@@ -83,9 +83,9 @@ class FileStructure(BaseModel):
     section_count: int = 0
     word_count: int = 0
 
-    # Chapter information for Roman numeral chapters
-    chapter_title: Optional[str] = None  # Full chapter title (e.g., "III. Quantum Mechanics")
-    is_first_in_chapter: bool = False  # True if this is the first file in a Roman numeral chapter
+    # Chapter title-page information (arabic-numbered chapter directories)
+    chapter_title: Optional[str] = None  # Cleaned chapter title (e.g., "Black Holes")
+    is_first_in_chapter: bool = False  # True if this is the first file in its chapter directory
 
     @computed_field
     @property
