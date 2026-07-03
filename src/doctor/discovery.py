@@ -204,6 +204,10 @@ class DocIgnoreHandler:
         if path.name.startswith("_"):
             return True
 
+        # README files are project documentation, never manuscript content
+        if path.name.lower() == "readme.md":
+            return True
+
         # Get relative path for pattern matching
         try:
             rel_path = path.relative_to(project_path)

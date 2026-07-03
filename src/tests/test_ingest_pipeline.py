@@ -131,30 +131,30 @@ class TestIngestionPipeline:
         print(f"Found citation keys: {citation_keys}")
 
     def test_frontmatter_extraction(self):
-        """Test YAML frontmatter extraction from README.md."""
+        """Test YAML frontmatter extraction from a chapter file."""
         test_project_path = Path(__file__).parent.parent.parent / "docs" / "test-project"
 
         if not test_project_path.exists():
             pytest.skip(f"Test project not found at {test_project_path}")
 
-        # Find README.md which has frontmatter
-        readme_path = test_project_path / "README.md"
-        if not readme_path.exists():
-            pytest.skip("README.md not found in test project")
+        # A chapter file carries frontmatter (README is repo docs, ignored)
+        fm_path = test_project_path / "1. Introduction" / "1. Historical Context.md"
+        if not fm_path.exists():
+            pytest.skip("Frontmatter fixture file not found in test project")
 
         from doctor.discovery import MarkdownFile
 
         # Create MarkdownFile and load content
-        readme_file = MarkdownFile(
-            path=readme_path,
-            relative_path=readme_path.relative_to(test_project_path),
-            name=readme_path.name,
-            parent_dir="",
+        fm_file = MarkdownFile(
+            path=fm_path,
+            relative_path=fm_path.relative_to(test_project_path),
+            name=fm_path.name,
+            parent_dir="1. Introduction",
         )
 
         # Parse the file
         content_ingestion = ContentIngestion()
-        parsed_content = content_ingestion.ingest_file(readme_file)
+        parsed_content = content_ingestion.ingest_file(fm_file)
 
         # Should extract frontmatter
         frontmatter = parsed_content.frontmatter

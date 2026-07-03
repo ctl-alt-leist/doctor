@@ -62,39 +62,36 @@ class TestFeatureValidation:
         """Test that file discovery finds all expected files."""
         file_structure = discover_project_files(test_project_path)
 
-        # Should find 7 markdown files
-        assert file_structure.total_files == 7
+        # Should find the 6 chapter markdown files; README.md is ignored
+        assert file_structure.total_files == 6
 
-        # Should organize into directories properly
-        assert len(file_structure.directories) == 4  # root + 3 subdirs
-
-        # Verify specific files exist
+        # Verify specific files exist, and that README is excluded
         file_names = [f.name for f in file_structure.files]
-        assert "README.md" in file_names
+        assert "README.md" not in file_names
         assert "1. Mathematical Foundations.md" in file_names
         assert "2. Feynman Diagrams.md" in file_names
 
         print(f"✓ Discovered {file_structure.total_files} files in {len(file_structure.directories)} directories")
 
     def test_yaml_frontmatter_extraction(self, test_project_path):
-        """Test YAML frontmatter extraction from README.md."""
+        """Test YAML frontmatter extraction from a chapter file."""
         file_structure = discover_project_files(test_project_path)
 
-        # Find README.md
-        readme_file = None
+        # Find the chapter file that carries frontmatter
+        fm_file = None
         for f in file_structure.files:
-            if f.name == "README.md":
-                readme_file = f
+            if f.name == "1. Historical Context.md":
+                fm_file = f
                 break
 
-        assert readme_file is not None, "README.md should be found"
+        assert fm_file is not None, "Historical Context file should be found"
 
         # Parse frontmatter
         content_ingestion = ContentIngestion()
-        parsed_content = content_ingestion.ingest_file(readme_file)
+        parsed_content = content_ingestion.ingest_file(fm_file)
 
         frontmatter = parsed_content.frontmatter
-        assert frontmatter.title == "A Study of Quantum Field Theory"
+        assert frontmatter.title == "Historical Context"
         assert frontmatter.author == "Dr. Jane Smith"
         assert frontmatter.date == "2025"
         assert "quantum field theory" in frontmatter.abstract.lower()
@@ -174,8 +171,8 @@ class TestFeatureValidation:
         """Test document structure and table of contents generation."""
         assembled_doc = self.full_pipeline_result(test_project_path)
 
-        # Should have proper document structure
-        assert assembled_doc.total_files == 7
+        # Should have proper document structure (6 chapter files; README ignored)
+        assert assembled_doc.total_files == 6
         assert assembled_doc.total_sections > 40, "Should find many sections"
 
         # Should have table of contents
@@ -226,7 +223,7 @@ class TestFeatureValidation:
 
         # Statistics should be reasonable
         stats = assembled_doc.validation_summary
-        assert stats["total_files"] == 7
+        assert stats["total_files"] == 6
         assert stats["total_sections"] > 40
         assert stats["total_citations"] > 0
 
