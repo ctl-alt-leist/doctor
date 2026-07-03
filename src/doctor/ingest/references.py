@@ -202,14 +202,14 @@ class CrossReferenceTracking:
 
         # 3. Try in common figure directories relative to source file directory
         # This checks for _figures/ in the same directory as the source file
-        for fig_dir in ["_figures", "figures", "images", "assets"]:
+        for fig_dir in ["+figures", "_figures", "figures", "images", "assets"]:
             source_fig_path = source_file.parent / fig_dir / figure_path_obj.name
             if source_fig_path.exists():
                 return source_fig_path
 
         # 4. Try in common figure directories at project root (with just the filename)
         # This strips any directory prefix from the figure path
-        for fig_dir in ["_figures", "figures", "images", "assets"]:
+        for fig_dir in ["+figures", "_figures", "figures", "images", "assets"]:
             project_fig_path = self.project_root / fig_dir / figure_path_obj.name
             if project_fig_path.exists():
                 return project_fig_path

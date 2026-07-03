@@ -57,7 +57,7 @@ class TestIngestionPipeline:
         assert reference_map.total_references >= 0
 
         # Step 5: Bibliography Processing (J → P)
-        references_file = test_project_path / "references.toml"
+        references_file = test_project_path / "+references.toml"
         bibliography_processing = BibliographyProcessing()
         citation_database = bibliography_processing.process_bibliography(
             parsed_files, [references_file] if references_file.exists() else None

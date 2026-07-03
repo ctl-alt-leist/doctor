@@ -48,7 +48,7 @@ class TestFeatureValidation:
         reference_map = reference_tracking.track_references(document_structure)
 
         # Bibliography Processing
-        references_file = test_project_path / "references.toml"
+        references_file = test_project_path / "+references.toml"
         bibliography_processing = BibliographyProcessing()
         citation_database = bibliography_processing.process_bibliography(
             parsed_files, [references_file] if references_file.exists() else None
@@ -145,7 +145,7 @@ class TestFeatureValidation:
             parsed_files.append(parsed_content)
 
         # Process bibliography
-        references_file = test_project_path / "references.toml"
+        references_file = test_project_path / "+references.toml"
         bibliography_processing = BibliographyProcessing()
         citation_database = bibliography_processing.process_bibliography(parsed_files, [references_file])
 

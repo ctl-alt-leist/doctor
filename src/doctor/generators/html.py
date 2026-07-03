@@ -191,77 +191,64 @@ class HTMLGenerator(BaseGenerator):
 
     def _copy_shared_resources(self, document: AssembledDocument, output_dir: Path) -> None:
         """
-        Copy shared resources like figures to the output directory.
+        Copy figure directories to the output so relative ``src`` paths resolve.
 
-        Collects all figures from _figures directories throughout the project
-        and consolidates them into a single _figures directory at the output location.
+        Both the auxiliary ``+figures`` and the scratch ``_figures`` conventions
+        are consolidated; each keeps its own name at the output location, so an
+        embed written as ``+figures/x.svg`` or ``_figures/x.svg`` still points at
+        a real file after compilation.
         """
-        import shutil
-
-        # Find the source directory containing the markdown files
         if not document.document_structure.files:
             return
 
-        figures_dst = output_dir / "_figures"
+        for assets_name in ("+figures", "_figures"):
+            self._consolidate_asset_dir(document, output_dir, assets_name)
 
-        # Create destination figures directory if it doesn't exist
-        figures_dst.mkdir(parents=True, exist_ok=True)
+    def _consolidate_asset_dir(self, document: AssembledDocument, output_dir: Path, assets_name: str) -> None:
+        """Collect every ``assets_name`` directory in the project into one at the output."""
+        import shutil
 
-        # Collect all unique _figures directories from the project
-        figures_dirs = set()
-
-        # Get project root (common ancestor of all files)
         file_paths = [f.file_path for f in document.document_structure.files]
         if not file_paths:
             return
 
-        # Find common ancestor directory
+        # Common ancestor of all content files stands in for the project root.
         common_ancestor = file_paths[0].parent
         for file_path in file_paths[1:]:
-            # Walk up until we find a common ancestor
             while not str(file_path).startswith(str(common_ancestor)):
                 common_ancestor = common_ancestor.parent
-                if common_ancestor.parent == common_ancestor:  # Reached root
+                if common_ancestor.parent == common_ancestor:
                     break
 
-        # Search for all _figures directories under the project root
+        assets_dst = output_dir / assets_name
+        source_dirs = set()
         try:
-            for figures_dir in common_ancestor.rglob("_figures"):
-                if figures_dir.is_dir():
-                    # Skip if it's the output directory itself (avoid recursion)
-                    if figures_dir != figures_dst and not str(figures_dst).startswith(str(figures_dir)):
-                        figures_dirs.add(figures_dir)
+            for assets_dir in common_ancestor.rglob(assets_name):
+                if assets_dir.is_dir() and assets_dir != assets_dst and not str(assets_dst).startswith(str(assets_dir)):
+                    source_dirs.add(assets_dir)
         except Exception as e:
-            print(f"Warning: Error searching for figures directories: {e}")
+            print(f"Warning: Error searching for {assets_name} directories: {e}")
 
-        # Also check each file's directory for _figures
-        for file_struct in document.document_structure.files:
-            file_dir = file_struct.file_path.parent
-            local_figures = file_dir / "_figures"
-            if local_figures.exists() and local_figures.is_dir():
-                if local_figures != figures_dst:
-                    figures_dirs.add(local_figures)
+        if not source_dirs:
+            return
 
-        # Copy all figures from all _figures directories (including subdirectories)
+        assets_dst.mkdir(parents=True, exist_ok=True)
         copied_items = set()
-        for src_dir in figures_dirs:
+        for src_dir in source_dirs:
             try:
                 for src_item in src_dir.iterdir():
-                    dst_item = figures_dst / src_item.name
-
-                    # Handle conflicts by keeping the first version found
-                    if src_item.name not in copied_items:
-                        if src_item.is_file():
-                            shutil.copy2(src_item, dst_item)
-                        elif src_item.is_dir():
-                            # Recursively copy subdirectories
-                            if dst_item.exists():
-                                shutil.rmtree(dst_item)
-                            shutil.copytree(src_item, dst_item)
-                        copied_items.add(src_item.name)
-
+                    if src_item.name in copied_items:
+                        continue
+                    dst_item = assets_dst / src_item.name
+                    if src_item.is_file():
+                        shutil.copy2(src_item, dst_item)
+                    elif src_item.is_dir():
+                        if dst_item.exists():
+                            shutil.rmtree(dst_item)
+                        shutil.copytree(src_item, dst_item)
+                    copied_items.add(src_item.name)
             except Exception as e:
-                print(f"Warning: Failed to copy figures from {src_dir}: {e}")
+                print(f"Warning: Failed to copy {assets_name} from {src_dir}: {e}")
 
     def _build_file_navigation(self, document: AssembledDocument) -> list:
         """Build navigation structure for multi-page layout."""

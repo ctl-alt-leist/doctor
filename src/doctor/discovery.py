@@ -199,9 +199,21 @@ class DocIgnoreHandler:
                 raise RuntimeError(f"Error reading .docignore: {e}") from e
 
     def should_ignore(self, path: Path, project_path: Path) -> bool:
-        """Check if a path should be ignored based on patterns."""
-        # Always ignore underscore-prefixed files/directories
-        if path.name.startswith("_"):
+        """
+        Check if a path should be excluded from the main content sweep.
+
+        Two prefixes are honored, for an open set of user-chosen names:
+
+        - ``_name`` — scratch, ignored entirely (never preserved in versions).
+        - ``+name`` — auxiliary: excluded from the main document's content but
+          available to the build (assets like ``+figures``, ``+references.toml``)
+          and compilable on its own (``+papers``, ``+audio``). The distinguishing
+          fact — that versions keep ``+`` and drop ``_`` — lives in the versioner.
+
+        Both are excluded from the content sweep here; the difference is what
+        happens to them elsewhere, not whether they are swept.
+        """
+        if path.name.startswith("_") or path.name.startswith("+"):
             return True
 
         # README files are project documentation, never manuscript content

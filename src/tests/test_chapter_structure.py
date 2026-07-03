@@ -118,3 +118,9 @@ class TestStructureOverProject:
         structure = self._analyze()
         for f in structure.files:
             assert f.file_path.name.lower() != "readme.md"
+
+    def test_plus_auxiliaries_excluded_from_main_document(self):
+        structure = self._analyze()
+        # The +papers/ sub-document and any +-prefixed path are not swept into the main doc.
+        for f in structure.files:
+            assert not any(part.startswith("+") for part in f.file_path.parts)
