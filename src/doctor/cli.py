@@ -172,6 +172,46 @@ def create_parser() -> argparse.ArgumentParser:
         help="Generate ingestion pipeline report showing parsed content, references, and citations",
     )
 
+    # Versioning: snapshot / list / restore / build a saved version
+    parser.add_argument(
+        "--save-version",
+        dest="save_version",
+        nargs="?",
+        const="",
+        default=None,
+        metavar="NAME",
+        help="Save a snapshot of the project to .doctor/versions/ (optional name)",
+    )
+
+    parser.add_argument(
+        "--versions",
+        action="store_true",
+        help="List saved versions",
+    )
+
+    parser.add_argument(
+        "--restore",
+        dest="restore",
+        type=int,
+        metavar="ID",
+        help="Unpack a saved version alongside its archive in .doctor/versions/ (never swaps HEAD)",
+    )
+
+    parser.add_argument(
+        "--build-version",
+        dest="build_version",
+        type=int,
+        metavar="ID",
+        help="Compile a saved version and write its PDF with a version tag",
+    )
+
+    parser.add_argument(
+        "--keep-pdf",
+        dest="keep_pdf",
+        action="store_true",
+        help="(with --save-version) also store the compiled PDF in the snapshot — not available yet",
+    )
+
     # Reference organizer special flag
     parser.add_argument(
         "--reforg",
@@ -274,6 +314,13 @@ class CliArgs:
         self.list_files = args.list_files
         self.validate = args.validate
         self.report = args.report
+
+        # Versioning attributes
+        self.save_version = getattr(args, "save_version", None)
+        self.versions = getattr(args, "versions", False)
+        self.restore = getattr(args, "restore", None)
+        self.build_version = getattr(args, "build_version", None)
+        self.keep_pdf = getattr(args, "keep_pdf", False)
 
         # Reforg-specific attributes
         self.reforg = args.reforg
@@ -448,6 +495,90 @@ def _resolve_title(config, args) -> None:
         config.document.title = args.project_path.name
 
 
+def _compile(args) -> list:
+    """Load config, discover, run the pipeline, and generate outputs for ``args``."""
+    config = load_configs(args.config_paths, project_path=args.project_path, base_path=args.doctor_root)
+    _resolve_title(config, args)
+
+    if args.is_single_file:
+        structure = discover_single_file(args.target_path)
+    else:
+        structure = discover_project_files(args.project_path)
+
+    if not args.quiet:
+        print(f"📄 Processing {structure.total_files} markdown files")
+
+    assembled_doc = _run_ingestion_pipeline(structure, args, config)
+    results = _generate_documents(assembled_doc, args, config)
+
+    for result in results:
+        if result.success:
+            size_mb = result.file_size / (1024 * 1024)
+            print(f"✅ Generated {result.format.upper()}: {result.output_path} ({size_mb:.1f}MB)")
+        else:
+            print(f"❌ Failed to generate {result.format.upper()}: {result.output_path}", file=sys.stderr)
+
+    return results
+
+
+def _handle_versioning(args) -> int:
+    """Dispatch --versions / --save-version / --restore / --build-version."""
+    from doctor.versioning import VersionStore, version_tagged_output
+
+    store = VersionStore(args.doctor_root)
+
+    if args.versions:
+        versions = store.list_versions()
+        if not versions:
+            print("No saved versions.")
+        else:
+            print("Saved versions:")
+            for version in versions:
+                name = f"  {version.name}" if version.name else ""
+                print(f"  v{version.id}  {version.created}{name}")
+        return 0
+
+    if args.save_version is not None:
+        if args.keep_pdf:
+            print("Note: storing the compiled PDF inside a version is not available yet; saving without it.")
+        version = store.save(name=args.save_version)
+        named = f" '{version.name}'" if version.name else ""
+        print(f"✅ Saved version v{version.id}{named} → {store.versions_dir / version.archive}")
+        return 0
+
+    if args.restore is not None:
+        try:
+            destination = store.restore(args.restore)
+        except (ValueError, FileNotFoundError) as e:
+            print(f"Error: {e}", file=sys.stderr)
+            return 1
+        print(f"✅ Restored v{args.restore} alongside its archive → {destination}")
+        return 0
+
+    if args.build_version is not None:
+        try:
+            restored_root = store.restore(args.build_version)
+        except (ValueError, FileNotFoundError) as e:
+            print(f"Error: {e}", file=sys.stderr)
+            return 1
+
+        # The PDF lands beside the HEAD output, tagged with the version id.
+        tagged_output = version_tagged_output(args.output_path.with_suffix(".pdf"), args.build_version)
+        sub_namespace = create_parser().parse_args([
+            str(restored_root),
+            "--format",
+            "pdf",
+            "--output",
+            str(tagged_output),
+        ])
+        sub_args = CliArgs(sub_namespace)
+        _compile(sub_args)
+        print(f"📎 Built v{args.build_version} → {tagged_output}")
+        return 0
+
+    return 0
+
+
 def _run_ingestion_pipeline(structure, args, config):
     """Run the complete ingestion pipeline and return assembled document."""
     # Step 1: Content Ingestion (G → L)
@@ -552,6 +683,10 @@ def main():
 
         # Handle document generation (default)
         args = CliArgs(parsed_args)
+
+        # Handle versioning commands (snapshot / list / restore / build a version)
+        if args.versions or args.save_version is not None or args.restore is not None or args.build_version is not None:
+            return _handle_versioning(args)
 
         # Load configurations. Config-relative paths (e.g. references_file) resolve
         # against the project root, even when profiles live in .doctor/.
