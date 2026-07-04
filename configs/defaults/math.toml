@@ -16,6 +16,9 @@ equation_spacing = "1rem"  # Space before/after display equations
 align_equations = "center"  # "center", "left", "right"
 
 # LaTeX packages for mathematical typesetting
+# NOTE: This section is not wired to anything. There is no TeX engine in the
+# pipeline -- math is rendered in the browser by KaTeX, which does not load
+# LaTeX packages. Kept for documentation of the intended math dialect only.
 [math.latex_packages]
 # Core math packages (always loaded)
 amsmath = true      # Enhanced math environments

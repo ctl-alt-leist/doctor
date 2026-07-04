@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import List, Optional
 
 from doctor.generators.base import BaseGenerator, GenerationResult, OutputFormat
+from doctor.generators.mathbb_digits import inject_mathbb_digits
 
 
 class SlidesGenerator(BaseGenerator):
@@ -237,7 +238,7 @@ class SlidesGenerator(BaseGenerator):
         header_html, body_html = self._extract_header_and_body(slide_html)
         css = self._create_slides_css()
 
-        return f"""<!DOCTYPE html>
+        return inject_mathbb_digits(f"""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -270,7 +271,7 @@ class SlidesGenerator(BaseGenerator):
         }});
     </script>
 </body>
-</html>"""
+</html>""")
 
     def _merge_pdfs(self, pdf_buffers: List[bytes], output_path: Path):
         """Concatenate the per-slide PDF byte buffers into one file."""

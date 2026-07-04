@@ -12,6 +12,7 @@ from typing import Dict, Optional
 from jinja2 import Environment, FileSystemLoader, Template
 
 from doctor.generators.base import BaseGenerator, GenerationResult, OutputFormat
+from doctor.generators.mathbb_digits import inject_mathbb_digits
 from doctor.ingest.assembly import AssembledDocument
 
 
@@ -467,7 +468,7 @@ class HTMLGenerator(BaseGenerator):
     </div>
 </body>
 </html>"""
-        return self.jinja_env.from_string(index_template)
+        return self.jinja_env.from_string(inject_mathbb_digits(index_template))
 
     def _create_default_page_template(self) -> Template:
         """Create default page template."""
@@ -722,7 +723,7 @@ class HTMLGenerator(BaseGenerator):
     </script>
 </body>
 </html>"""
-        return self.jinja_env.from_string(page_template)
+        return self.jinja_env.from_string(inject_mathbb_digits(page_template))
 
     def _get_html_template(self) -> Template:
         """Get or create the main HTML template."""
@@ -1378,9 +1379,11 @@ class HTMLGenerator(BaseGenerator):
                 // More precise processing options
                 processEscapes: true,
                 processEnvironments: true,
-                // Trust KaTeX to properly distinguish \( from (
-                trust: false,
-                strict: 'warn',
+                // Warn on LaTeX-incompatible input, except the deliberate
+                // htmlExtension use by the \mathbb digit preProcess hook
+                strict: function(errorCode) {
+                    return errorCode === 'htmlExtension' ? 'ignore' : 'warn';
+                },
                 // Disable automatic equation numbering
                 fleqn: false,
                 leqno: false
@@ -1390,7 +1393,7 @@ class HTMLGenerator(BaseGenerator):
 </body>
 </html>"""
 
-        return self.jinja_env.from_string(default_template)
+        return self.jinja_env.from_string(inject_mathbb_digits(default_template))
 
     def _build_template_context(self, document: AssembledDocument) -> Dict:
         """Build the context dictionary for template rendering."""

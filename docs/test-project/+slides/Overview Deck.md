@@ -27,6 +27,8 @@ $$
 
 and its canonical commutator is $[\phi(x), \pi(y)] = i \hbar \delta^3(x - y)$.
 
+Unitarity reads $\hat{U}^\dagger \hat{U} = \mathbb{1}$, with $\mathbb{1}$ the identity and $\mathbb{R}$ still double-struck.
+
 ---
 
 ## Black Holes Enter

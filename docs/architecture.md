@@ -128,6 +128,8 @@ The Jinja2 template then iterates over the data model objects directly:
 
 LaTeX math (`$...$` and `$$...$$`) is left untouched in the HTML output. KaTeX JavaScript renders it client-side in the browser.
 
+One gap in KaTeX is papered over at render time: KaTeX has no double-struck digits, so `\mathbb{1}` would silently render as a plain roman 1. The generator templates inject a `preProcess` hook and a small embedded webfont (see `generators/mathbb_digits.py`) that reroute `\mathbb` digits to double-struck glyphs; `\mathbb` letters keep the stock KaTeX path.
+
 For PDF generation, the HTML output is loaded into a headless browser (Playwright) which renders the complete page—including KaTeX math—then exports to PDF.
 
 ## Data Model
