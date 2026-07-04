@@ -128,13 +128,14 @@ class TestConfigIntegration:
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
 
-            # Test invalid enum value
+            # Test invalid enum value (document.type is now an open profile name;
+            # bibliography.style is still a constrained enum)
             invalid_config = temp_path / "invalid.toml"
             with open(invalid_config, "w") as f:
                 toml.dump(
                     {
-                        "document": {
-                            "type": "invalid_type"  # Not a valid DocumentType
+                        "bibliography": {
+                            "style": "invalid_style"  # Not a valid CitationStyle
                         }
                     },
                     f,

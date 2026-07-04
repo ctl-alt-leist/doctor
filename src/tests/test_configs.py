@@ -125,8 +125,8 @@ class TestConfigLoading:
     def test_invalid_config_raises_error(self):
         """Test that invalid configurations raise appropriate errors."""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".toml", delete=False) as f:
-            # Invalid document type
-            user_config = {"document": {"type": "invalid_type"}}
+            # Invalid citation style (document.type is now an open profile name)
+            user_config = {"bibliography": {"style": "invalid_style"}}
             toml.dump(user_config, f)
             f.flush()
 
@@ -176,9 +176,9 @@ class TestConfigValidation:
         assert config.document.title == "Test Article"
 
     def test_enum_validation(self):
-        """Test that enum values are validated."""
+        """Test that enum values are validated (document.type is now an open string)."""
         with pytest.raises(ValueError):
-            Config(document={"type": "invalid_type"})
+            Config(bibliography={"style": "invalid_style"})
 
     def test_field_validation(self):
         """Test that field constraints are enforced."""

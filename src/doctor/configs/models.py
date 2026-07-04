@@ -100,7 +100,11 @@ class DocumentChapters(BaseModel):
 
 
 class DocumentConfig(BaseModel):
-    type: DocumentType = DocumentType.ARTICLE
+    # `type` names the compilation profile (.doctor/<type>.toml) and is an open
+    # set — book, article, audiobook, or any profile a project defines. The
+    # DocumentType enum below lists the built-in presets that get special layout
+    # handling, but the field itself is a free string.
+    type: str = "article"
     css_classes: Dict[str, str] = {
         "article": "document-type-article",
         "book": "document-type-book",
