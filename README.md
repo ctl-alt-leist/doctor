@@ -40,7 +40,8 @@ the document from its frontmatter, its first `#` heading, or its filename.
 
 A project is a directory holding a `.doctor/` directory. Running `doc` on any file or
 subdirectory walks up to the nearest `.doctor/` and uses it as the config, build, and
-version root.
+version root. For a full setup and migration guide, see
+[docs/project-setup.md](docs/project-setup.md).
 
 ```
 MyBook/
