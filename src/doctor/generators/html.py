@@ -16,6 +16,72 @@ from doctor.generators.mathbb_digits import inject_mathbb_digits
 from doctor.ingest.assembly import AssembledDocument
 
 
+# HTML elements that are block-level and must never be wrapped in a <p>: doing so
+# is invalid HTML, and in print the browser auto-closes the <p>, orphaning the
+# element onto its own page and wrecking pagination (a lone equation or figure
+# marooned on a blank page).
+_BLOCK_LEVEL_TAGS = frozenset({
+    "figure",
+    "figcaption",
+    "div",
+    "img",
+    "table",
+    "thead",
+    "tbody",
+    "tr",
+    "ul",
+    "ol",
+    "li",
+    "blockquote",
+    "hr",
+    "section",
+    "article",
+    "header",
+    "footer",
+    "nav",
+    "aside",
+    "pre",
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",
+    "video",
+    "audio",
+    "iframe",
+    "svg",
+    "p",
+})
+
+
+def _is_block_level_paragraph(text: str, placeholder_content: Dict[str, str]) -> bool:
+    """
+    True if a ``\\n\\n``-delimited block should stay unwrapped rather than be put
+    in a ``<p>``: a standalone display equation (``$$…$$``), or a block that opens
+    with a block-level HTML tag. Content is looked through its protection
+    placeholder, since math and tags are stashed as ``⟦…⟧`` tokens at this stage.
+    """
+    import re
+
+    stripped = text.strip()
+
+    # A standalone display-math block is exactly one MATH placeholder resolving to $$…$$.
+    if stripped in placeholder_content and placeholder_content[stripped].lstrip().startswith("$$"):
+        return True
+
+    # Otherwise inspect the opening token — a leading placeholder is resolved to
+    # the raw tag it stands for so a protected <figure>/<div>/… is recognized.
+    lead = stripped
+    placeholder = re.match(r"^(⟦[A-Z]+\d+⟧)", stripped)
+    if placeholder:
+        lead = placeholder_content.get(placeholder.group(1), stripped)
+
+    tag = re.match(r"^<\s*/?\s*([a-zA-Z][a-zA-Z0-9]*)", lead.lstrip())
+
+    return bool(tag and tag.group(1).lower() in _BLOCK_LEVEL_TAGS)
+
+
 class HTMLGenerator(BaseGenerator):
     """
     HTML document generator.
@@ -1691,7 +1757,10 @@ class HTMLGenerator(BaseGenerator):
 
         html = re.sub(r"\[\[([^\]]+)\]\]", process_wikilink, html)
 
-        # Convert paragraphs (double newlines), but preserve list HTML
+        # Convert paragraphs (double newlines), but never wrap block-level content.
+        # Wrapping a <figure> or a $$…$$ display equation in <p> is invalid HTML and,
+        # in the PDF, orphans it onto its own page — the lone-equation-on-a-blank-page bug.
+        placeholder_content = dict(protected_blocks)
         paragraphs = html.split("\n\n")
         processed_paragraphs = []
 
@@ -1699,13 +1768,14 @@ class HTMLGenerator(BaseGenerator):
             p = p.strip()
             if not p:
                 continue
-            # Don't wrap lists or tables in paragraph tags
+            # Leave lists, tables, and any other block-level content unwrapped.
             if (
                 p.startswith("<ol>")
                 or p.startswith("<ul>")
                 or p.startswith("</ol>")
                 or p.startswith("</ul>")
                 or p.startswith("<table")
+                or _is_block_level_paragraph(p, placeholder_content)
             ):
                 processed_paragraphs.append(p)
             else:
