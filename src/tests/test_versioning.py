@@ -6,7 +6,7 @@ ids, restore-alongside-never-swap, and version-tagged PDF naming.
 import tarfile
 from pathlib import Path
 
-from doctor.versioning import VersionStore, version_tagged_output
+from doctor.versioning import VersionStore, captured_references, version_tagged_output
 
 
 def _make_project(root: Path) -> None:
@@ -19,9 +19,11 @@ def _make_project(root: Path) -> None:
     (root / "1. Introduction" / "1. Intro.md").write_text("# Intro\n")
     (root / "+figures").mkdir()
     (root / "+figures" / "plot.svg").write_text("<svg/>")
+    (root / "+figures" / ".DS_Store").write_bytes(b"\x00\x01macos junk")
     (root / "+references.toml").write_text("")
     (root / "_scratch").mkdir()
     (root / "_scratch" / "draft.md").write_text("# scratch\n")
+    (root / ".DS_Store").write_bytes(b"\x00\x01macos junk")
     (root / "project.pdf").write_bytes(b"%PDF-1.4 fake")
 
 
@@ -47,6 +49,48 @@ class TestSnapshotContents:
         assert not any(".doctor/build" in n for n in names)
         assert not any(".doctor/versions" in n for n in names)
         assert not any(n.endswith(".pdf") for n in names)
+
+        # Dropped everywhere: .DS_Store and other OS/editor dot-files.
+        assert not any(n.endswith(".DS_Store") for n in names)
+
+
+class TestBibliographyCapture:
+    def test_external_bibliography_is_captured_and_readable(self, tmp_path):
+        # A project whose bibliography lives OUTSIDE its root, reached by symlink
+        # — the case that silently dropped every citation from a built version.
+        project = tmp_path / "project"
+        project.mkdir()
+        _make_project(project)
+
+        shared_bib = tmp_path / "shared" / "references.toml"
+        shared_bib.parent.mkdir()
+        shared_bib.write_text('[einstein-1905]\ntitle = "On the Electrodynamics of Moving Bodies"\n')
+        symlinked = project / "linked-references.toml"
+        symlinked.symlink_to(shared_bib)
+
+        store = VersionStore(project)
+        version = store.save(name="withbib", references=[symlinked], timestamp="2026-01-01T00:00:00")
+
+        # The bibliography content is frozen inside the archive.
+        with tarfile.open(store.versions_dir / version.archive, "r:gz") as tar:
+            names = {n.split("/", 1)[1] for n in tar.getnames() if "/" in n}
+        assert ".doctor/_versioned-refs/references.toml" in names
+
+        # After restore, the capture reader hands the build the frozen copy, and
+        # its content survives a later change to the shared source.
+        shared_bib.write_text("# gutted after the snapshot\n")
+        restored = store.restore(1)
+        found = captured_references(restored)
+        assert [p.name for p in found] == ["references.toml"]
+        assert "einstein-1905" in found[0].read_text()
+
+    def test_no_bibliography_leaves_no_capture_dir(self, tmp_path):
+        _make_project(tmp_path)
+        store = VersionStore(tmp_path)
+        store.save(references=[], timestamp="2026-01-01T00:00:00")
+
+        restored = store.restore(1)
+        assert captured_references(restored) == []
 
 
 class TestVersionRegistry:

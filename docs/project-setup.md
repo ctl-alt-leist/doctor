@@ -177,7 +177,12 @@ should stay `_`-prefixed:
   snapshots, which is exactly what reference cruft should be.
 
 Going forward, `doc … --save-version` writes real snapshots to
-`.doctor/versions/`; the old `_versions/` can stay as history.
+`.doctor/versions/`; the old `_versions/` can stay as history. A snapshot is
+self-contained: it also captures the resolved bibliography (following symlinks)
+into `.doctor/_versioned-refs/`, so `doc … --build-version v1` reproduces the
+document's citations even when the bibliography lives outside the project root
+or the shared references store later changes. `.DS_Store` and other dot-files
+are never captured.
 
 ### Step 5 — Cleanup
 

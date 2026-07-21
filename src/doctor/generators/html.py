@@ -238,6 +238,9 @@ class HTMLGenerator(BaseGenerator):
         for src_dir in source_dirs:
             try:
                 for src_item in src_dir.iterdir():
+                    # Dot-files (.DS_Store above all) are OS noise, never assets.
+                    if src_item.name.startswith("."):
+                        continue
                     if src_item.name in copied_items:
                         continue
                     dst_item = assets_dst / src_item.name

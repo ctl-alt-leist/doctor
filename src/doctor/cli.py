@@ -29,6 +29,19 @@ from doctor.resolve import TargetResolutionError, resolve_target
 from doctor.tools import ReforgCommand
 
 
+def _version_id(value: str) -> int:
+    """
+    Parse a version identifier from the CLI. Versions are named ``v1``, ``v2``,
+    … everywhere doctor shows them (``--versions``, the archives, the restore
+    dirs), so that is the form accepted here. The leading ``v`` is required.
+    """
+    text = value.strip()
+    if not (text[:1].lower() == "v" and text[1:].isdigit()):
+        raise argparse.ArgumentTypeError(f"invalid version id: {value!r} (expected e.g. 'v1')")
+
+    return int(text[1:])
+
+
 def create_parser() -> argparse.ArgumentParser:
     """Create the argument parser for Doctor CLI."""
     parser = argparse.ArgumentParser(
@@ -37,20 +50,11 @@ def create_parser() -> argparse.ArgumentParser:
         epilog="For more information, see: https://github.com/doctor/doctor",
     )
 
-    # Positional argument: a markdown file, a project directory, or a name to locate
+    # Positional argument: a path to a markdown file or a project directory
     parser.add_argument(
         "target",
-        help="Markdown file or project directory to compile. May be a path, or a bare "
-        "name located by searching downward from the current directory (e.g. 'III', 'Galaxies').",
-    )
-
-    # Search depth for resolving a bare name
-    parser.add_argument(
-        "-d",
-        "--depth",
-        type=int,
-        default=3,
-        help="Search depth when resolving a bare name to a file or directory (default: 3)",
+        help="Path to the markdown file or project directory to compile "
+        "(relative or absolute; a leading '~' is expanded).",
     )
 
     # Configuration files
@@ -199,17 +203,17 @@ def create_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--restore",
         dest="restore",
-        type=int,
-        metavar="ID",
-        help="Unpack a saved version alongside its archive in .doctor/versions/ (never swaps HEAD)",
+        type=_version_id,
+        metavar="vN",
+        help="Unpack a saved version (e.g. v1) alongside its archive in .doctor/versions/ (never swaps HEAD)",
     )
 
     parser.add_argument(
         "--build-version",
         dest="build_version",
-        type=int,
-        metavar="ID",
-        help="Compile a saved version and write its PDF with a version tag",
+        type=_version_id,
+        metavar="vN",
+        help="Compile a saved version (e.g. v1) and write its PDF with a version tag",
     )
 
     parser.add_argument(
@@ -295,7 +299,7 @@ class CliArgs:
 
     def __init__(self, args: argparse.Namespace):
         # The target may be a single markdown file or a project directory.
-        self.target_path = resolve_target(args.target, depth=args.depth)
+        self.target_path = resolve_target(args.target)
         self.is_single_file = self.target_path.is_file()
 
         # The content root is what gets swept: a single file's parent, or the project dir.
@@ -329,6 +333,9 @@ class CliArgs:
         self.restore = getattr(args, "restore", None)
         self.build_version = getattr(args, "build_version", None)
         self.keep_pdf = getattr(args, "keep_pdf", False)
+        # Set when building a saved version: the bibliography files captured in
+        # the snapshot to compile against, overriding config/project resolution.
+        self.references_override: Optional[List[Path]] = None
 
         # Reforg-specific attributes
         self.reforg = args.reforg
@@ -439,11 +446,14 @@ class CliArgs:
             raise FileNotFoundError(f"Output directory not found: {output_parent}")
 
 
-def _resolve_references_files(config, project_path: Path) -> List[Path]:
+def _resolve_references_files(config, project_path: Path, override: Optional[List[Path]] = None) -> List[Path]:
     """
     Resolve all references file paths from config or project directory.
 
     Priority:
+    0. ``override`` — when building a saved version, the bibliography captured
+       inside the snapshot. Takes full precedence: those files *are* the
+       bibliography, so no config- or project-relative resolution is attempted.
     1. Config bibliography.references_file (resolved relative to config file)
        - Can be a single string or list of strings
        - All specified files are loaded and merged
@@ -452,6 +462,9 @@ def _resolve_references_files(config, project_path: Path) -> List[Path]:
     Returns:
         List of existing reference file paths
     """
+    if override:
+        return [Path(path).resolve() for path in override if Path(path).exists()]
+
     resolved_files = []
 
     # Check config for references_file
@@ -613,7 +626,7 @@ def _handle_slides(args) -> int:
 
 def _handle_versioning(args) -> int:
     """Dispatch --versions / --save-version / --restore / --build-version."""
-    from doctor.versioning import VersionStore, version_tagged_output
+    from doctor.versioning import VersionStore, captured_references, version_tagged_output
 
     store = VersionStore(args.doctor_root)
 
@@ -631,9 +644,18 @@ def _handle_versioning(args) -> int:
     if args.save_version is not None:
         if args.keep_pdf:
             print("Note: storing the compiled PDF inside a version is not available yet; saving without it.")
-        version = store.save(name=args.save_version)
+
+        # Resolve the bibliography now so it is captured into the snapshot. It
+        # commonly lives outside the project root (a shared, symlinked store),
+        # so without this a built version loses all of its citations.
+        config = load_configs(args.config_paths, project_path=args.project_path, base_path=args.doctor_root)
+        references = _resolve_references_files(config, args.project_path)
+
+        version = store.save(name=args.save_version, references=references)
         named = f" '{version.name}'" if version.name else ""
         print(f"✅ Saved version v{version.id}{named} → {store.versions_dir / version.archive}")
+        if references:
+            print(f"   ↳ captured {len(references)} bibliography file(s) into the snapshot")
         return 0
 
     if args.restore is not None:
@@ -662,6 +684,11 @@ def _handle_versioning(args) -> int:
             str(tagged_output),
         ])
         sub_args = CliArgs(sub_namespace)
+
+        # Compile against the bibliography captured in the snapshot, not the live
+        # external one — this is what makes a built version reproduce its citations.
+        sub_args.references_override = captured_references(restored_root)
+
         _compile(sub_args)
         print(f"📎 Built v{args.build_version} → {tagged_output}")
         return 0
@@ -693,7 +720,9 @@ def _run_ingestion_pipeline(structure, args, config):
 
     # Step 4: Bibliography Processing (J → P)
     bib_processing = BibliographyProcessing()
-    references_files = _resolve_references_files(config, args.project_path)
+    references_files = _resolve_references_files(
+        config, args.project_path, override=getattr(args, "references_override", None)
+    )
     citation_database = bib_processing.process_bibliography(parsed_files, references_files)
 
     # Step 5: Document Assembly (K)
@@ -751,6 +780,9 @@ def parse_args(args: Optional[List[str]] = None) -> CliArgs:
 
 def main():
     """Main CLI entry point."""
+    # Bound before the try so the catch-all handler can inspect it even when
+    # CliArgs construction (e.g. an unresolvable target path) fails early.
+    args = None
     try:
         # The `toc` subcommand is handled by its own parser before the main one.
         if len(sys.argv) > 1 and sys.argv[1] == "toc":
