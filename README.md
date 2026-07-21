@@ -24,13 +24,12 @@ installs pre-commit hooks without touching your system.
 ## Usage
 
 The `doc` command compiles a markdown file or a project directory. Its single argument
-is a path, or a bare name located by searching downward from the current directory:
+is a path — relative or absolute (a leading `~` is expanded):
 
 ```bash
-doc note.md          # compile one file -> note.pdf beside it (no doctor.toml needed)
-doc path/to/Project  # compile a project directory -> Project.pdf
-doc "X.II"           # find a directory or file by name and compile it
-doc Galaxies -f html # choose the output format
+doc note.md              # compile one file -> note.pdf beside it (no doctor.toml needed)
+doc path/to/Project      # compile a project directory -> Project.pdf
+doc . -f html            # compile the current directory, choosing the output format
 ```
 
 A single file needs no configuration: doctor falls back to sensible defaults and titles
@@ -97,10 +96,10 @@ Snapshot the state needed to reproduce a PDF, stored in `.doctor/versions/` as `
 (restorable with standard tools):
 
 ```bash
-doc <target> --save-version [name]   # snapshot: content + "+" files + profiles
-doc <target> --versions              # list saved versions
-doc <target> --restore <id>          # unpack alongside the archive (never swaps HEAD)
-doc <target> --build-version <id>    # compile a version -> tagged PDF beside HEAD
+doc <path> --save-version [name]   # snapshot: content + "+" files + profiles + bibliography
+doc <path> --versions              # list saved versions
+doc <path> --restore v1            # unpack alongside the archive (never swaps HEAD)
+doc <path> --build-version v1      # compile a version -> tagged PDF beside HEAD
 ```
 
 ## Other commands

@@ -4,14 +4,14 @@ Tests for `doc` target resolution, single-file compilation, and defaults lookup.
 
 import pytest
 
-from doctor.cli import parse_args
+from doctor.cli import _version_id, parse_args
 from doctor.configs.loader import get_defaults_dir, get_user_config_dir
 from doctor.discovery import discover_single_file
 from doctor.resolve import TargetResolutionError, resolve_target
 
 
 class TestResolveTarget:
-    """Test resolving a query string to a file or directory."""
+    """Test resolving a path argument to a file or directory."""
 
     def test_explicit_path_to_file(self, tmp_path):
         """An existing file path is returned directly."""
@@ -31,45 +31,45 @@ class TestResolveTarget:
 
         assert resolved == target.resolve()
 
-    def test_find_directory_by_name(self, tmp_path):
-        """A bare directory name is located by searching downward."""
-        chapter = tmp_path / "sub" / "MyChapter"
-        chapter.mkdir(parents=True)
+    def test_relative_path_resolves_against_cwd(self, tmp_path, monkeypatch):
+        """A relative path is resolved, not fuzzy-matched, against the cwd."""
+        chapter = tmp_path / "MyChapter"
+        chapter.mkdir()
+        monkeypatch.chdir(tmp_path)
 
-        resolved = resolve_target("MyChapter", search_root=tmp_path)
+        resolved = resolve_target("MyChapter")
 
         assert resolved == chapter.resolve()
 
-    def test_find_file_by_name_via_extension_pattern(self, tmp_path):
-        """A bare filename matches through the '<name>.*' pattern."""
-        note = tmp_path / "notes" / "intro.md"
-        note.parent.mkdir(parents=True)
-        note.write_text("# Intro\n")
+    def test_missing_path_raises(self, tmp_path, monkeypatch):
+        """A path that does not exist raises — no downward name search."""
+        # A directory named so a former fuzzy match ("Chap") would have found it.
+        (tmp_path / "sub" / "Chapter").mkdir(parents=True)
+        monkeypatch.chdir(tmp_path)
 
-        resolved = resolve_target("intro", search_root=tmp_path)
+        with pytest.raises(TargetResolutionError, match="No such file or directory"):
+            resolve_target("Chapter")
 
-        assert resolved == note.resolve()
 
-    def test_no_match_raises(self, tmp_path):
-        """A query with no match raises a resolution error."""
-        with pytest.raises(TargetResolutionError, match="No file or directory"):
-            resolve_target("nonexistent", search_root=tmp_path)
+class TestVersionId:
+    """Test parsing the v-prefixed version identifier."""
 
-    def test_ambiguous_match_raises(self, tmp_path):
-        """A name matching more than one target is ambiguous."""
-        (tmp_path / "a" / "Foo").mkdir(parents=True)
-        (tmp_path / "b" / "Foo").mkdir(parents=True)
+    def test_valid_v_prefixed(self):
+        assert _version_id("v1") == 1
+        assert _version_id("v42") == 42
 
-        with pytest.raises(TargetResolutionError, match="Multiple matches"):
-            resolve_target("Foo", search_root=tmp_path)
+    def test_bare_integer_rejected(self):
+        """A bare number is no longer accepted; the 'v' is required."""
+        import argparse
 
-    def test_depth_limits_search(self, tmp_path):
-        """A target deeper than the depth limit is not found."""
-        deep = tmp_path / "one" / "two" / "three" / "Deep"
-        deep.mkdir(parents=True)
+        with pytest.raises(argparse.ArgumentTypeError, match="expected e.g. 'v1'"):
+            _version_id("1")
 
-        with pytest.raises(TargetResolutionError):
-            resolve_target("Deep", depth=2, search_root=tmp_path)
+    def test_garbage_rejected(self):
+        import argparse
+
+        with pytest.raises(argparse.ArgumentTypeError):
+            _version_id("vabc")
 
 
 class TestDiscoverSingleFile:

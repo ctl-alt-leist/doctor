@@ -27,6 +27,11 @@ import toml
 _EXCLUDED_DIR_NAMES = {".git", ".obsidian", "node_modules", "__pycache__"}
 _DOCTOR_TRANSIENT = {"build", "versions"}
 
+# Where captured bibliography files are stored inside a snapshot. Underscore-
+# prefixed so a later snapshot never sweeps it back in as content, and kept
+# under .doctor/ beside the profile it belongs to.
+_VERSIONED_REFS_DIR = ".doctor/_versioned-refs"
+
 
 @dataclass
 class Version:
@@ -77,8 +82,21 @@ class VersionStore:
 
     # -- writing -------------------------------------------------------------
 
-    def save(self, name: str = "", timestamp: Optional[str] = None) -> Version:
-        """Write a snapshot of the project to a new ``.tar.gz`` and record it."""
+    def save(
+        self,
+        name: str = "",
+        timestamp: Optional[str] = None,
+        references: Optional[List[Path]] = None,
+    ) -> Version:
+        """
+        Write a snapshot of the project to a new ``.tar.gz`` and record it.
+
+        ``references`` are the resolved bibliography files the document compiles
+        against. They are captured into the snapshot under ``_VERSIONED_REFS_DIR``
+        so the version is self-contained: it reproduces its citations even when
+        the bibliography lives outside the project root (the common case — a
+        shared, often symlinked, references store) and later changes.
+        """
         self.versions_dir.mkdir(parents=True, exist_ok=True)
 
         version_id = self._next_id()
@@ -87,15 +105,45 @@ class VersionStore:
         archive_path = self.versions_dir / archive_name
 
         root_label = f"v{version_id}"
-        with tarfile.open(archive_path, "w:gz") as tar:
+        # dereference=True stores symlink *content*, not the link. A snapshot is a
+        # content archive: it must survive the target moving or changing, and it
+        # must restore cleanly (extraction rejects absolute symlinks).
+        with tarfile.open(archive_path, "w:gz", dereference=True) as tar:
             for path in self._snapshot_files():
                 arcname = f"{root_label}/{path.relative_to(self.doctor_root).as_posix()}"
                 tar.add(path, arcname=arcname)
+
+            for arcname, ref_path in self._captured_references(root_label, references or []):
+                tar.add(ref_path, arcname=arcname)
 
         version = Version(id=version_id, name=name, created=created, archive=archive_name)
         self._append_to_index(version)
 
         return version
+
+    def _captured_references(self, root_label: str, references: List[Path]) -> List[tuple]:
+        """
+        Map each resolved bibliography file to its arcname inside the snapshot.
+
+        Symlinks are followed so the file's *content* at save time is captured,
+        not a link that may later dangle or change. Colliding basenames are
+        disambiguated with a counter so two distinct references files never
+        overwrite one another in the archive.
+        """
+        pairs: List[tuple] = []
+        seen: dict = {}
+        for reference in references:
+            resolved = Path(reference).resolve()
+            if not resolved.is_file():
+                continue
+
+            count = seen.get(resolved.name, 0)
+            seen[resolved.name] = count + 1
+            stored = resolved.name if count == 0 else f"{resolved.stem}-{count}{resolved.suffix}"
+            arcname = f"{root_label}/{_VERSIONED_REFS_DIR}/{stored}"
+            pairs.append((arcname, resolved))
+
+        return pairs
 
     def _append_to_index(self, version: Version) -> None:
         versions = self.list_versions()
@@ -140,6 +188,11 @@ class VersionStore:
         return True
 
     def _include_file(self, path: Path) -> bool:
+        # Dot-files (.DS_Store above all, plus .gitignore and editor cruft) are
+        # OS/infrastructure noise, never content — doctor ignores them entirely.
+        if path.name.startswith("."):
+            return False
+
         # Scratch is never snapshotted; a "+" auxiliary is always kept.
         if any(part.startswith("_") for part in path.relative_to(self.doctor_root).parts):
             return False
@@ -170,6 +223,20 @@ class VersionStore:
             tar.extractall(self.versions_dir, filter="data")
 
         return destination
+
+
+def captured_references(restored_root: Path) -> List[Path]:
+    """
+    List the bibliography files captured inside a restored version tree (see
+    ``VersionStore.save``). Empty when the version predates bibliography capture
+    or the document had no bibliography — the caller then falls back to normal
+    config/project reference resolution.
+    """
+    refs_dir = restored_root / _VERSIONED_REFS_DIR
+    if not refs_dir.is_dir():
+        return []
+
+    return sorted(path for path in refs_dir.iterdir() if path.is_file())
 
 
 def version_tagged_output(output_path: Path, version_id: int) -> Path:
