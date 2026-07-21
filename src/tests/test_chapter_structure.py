@@ -11,7 +11,7 @@ import pytest
 
 from doctor.discovery import discover_project_files
 from doctor.ingest.content import ContentIngestion
-from doctor.ingest.roles import Role, assign_roles, file_tiers
+from doctor.ingest.roles import Role, assign_roles, file_tiers, structural_sort_key
 from doctor.ingest.structure import StructureAnalysis
 
 
@@ -53,6 +53,66 @@ class TestRoleAssignment:
         roles = assign_roles(["0. Front Matter", "i. Prologue"])
         assert roles["0. Front Matter"] == Role.FRONT_MATTER
         assert roles["i. Prologue"] == Role.FRONT_MATTER
+
+    def test_lowercase_letter_is_appendix(self):
+        # Lowercase labels a., b. are appendices; the large-value roman letters
+        # c., d. (100, 500) never number front matter, so they are appendices too.
+        roles = assign_roles(["a. Path Integral", "b. Notation", "c. Tables", "d. Data"])
+        assert roles["a. Path Integral"] == Role.APPENDIX
+        assert roles["b. Notation"] == Role.APPENDIX
+        assert roles["c. Tables"] == Role.APPENDIX
+        assert roles["d. Data"] == Role.APPENDIX
+
+    def test_lowercase_small_roman_is_front_matter(self):
+        # i., v., x. are small romans a preface can reach, so they stay front matter.
+        roles = assign_roles(["i. Preface", "v. Notes", "x. Index"])
+        assert roles["i. Preface"] == Role.FRONT_MATTER
+        assert roles["v. Notes"] == Role.FRONT_MATTER
+        assert roles["x. Index"] == Role.FRONT_MATTER
+
+
+class TestOrdering:
+    """Front matter sorts first, the numbered body next, appendices last."""
+
+    def _order(self, files, dirs=None):
+        roles = assign_roles(dirs or [])
+        return sorted(files, key=lambda f: structural_sort_key(f, roles))
+
+    def test_appendix_file_sorts_after_numbered(self):
+        # The reported bug: a lowercase appendix file jumped ahead of the chapters.
+        files = ["a. The Path Integral.md", "2. Two.md", "1. One.md", "3. Three.md"]
+        assert self._order(files) == [
+            "1. One.md",
+            "2. Two.md",
+            "3. Three.md",
+            "a. The Path Integral.md",
+        ]
+
+    def test_front_matter_body_appendix_order(self):
+        files = ["b. B.md", "1. One.md", "ii. Intro.md", "a. A.md", "i. Preface.md", "2. Two.md"]
+        assert self._order(files) == [
+            "i. Preface.md",
+            "ii. Intro.md",
+            "1. One.md",
+            "2. Two.md",
+            "a. A.md",
+            "b. B.md",
+        ]
+
+    def test_appendix_labels_order_alphabetically(self):
+        # c., d. must order as the 3rd and 4th appendix, not by roman value (100, 500).
+        files = ["e. E.md", "a. A.md", "d. D.md", "b. B.md", "c. C.md"]
+        assert self._order(files) == ["a. A.md", "b. B.md", "c. C.md", "d. D.md", "e. E.md"]
+
+    def test_uppercase_appendix_dir_sorts_after_chapters(self):
+        dirs = ["1. Intro", "A. Reference"]
+        files = ["A. Reference/1. Tables.md", "1. Intro/1. Start.md"]
+        assert self._order(files, dirs) == ["1. Intro/1. Start.md", "A. Reference/1. Tables.md"]
+
+    def test_root_appendix_file_marked_appendix(self):
+        tiers = file_tiers("a. The Path Integral.md", assign_roles([]))
+        assert tiers.is_appendix is True
+        assert tiers.is_front_matter is False
 
 
 class TestFileTiers:
