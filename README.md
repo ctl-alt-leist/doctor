@@ -74,7 +74,7 @@ declarations in config:
 | `1.`, `2.` (arabic) | Chapter (title page) |
 | `1.`, `2.` nested in a chapter | Sub-chapter (inline heading, +1 heading level) |
 | `i.`, `ii.` (lowercase Roman) | front matter |
-| `A.`, `B.` (single letter) | appendix |
+| `A.`, `B.` or `a.`, `b.` (single letter) | appendix (sorts after the body) |
 
 A file authored with plain `#`/`##` headings renders at the depth implied by its place in
 the tree. Config styles these tiers but never defines them.

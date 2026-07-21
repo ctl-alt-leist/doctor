@@ -13,8 +13,15 @@ Conventions:
 - ``1.``, ``2.`` … (arabic, nested)        → Sub-chapter
 - ``i.``, ``ii.`` … (lowercase Roman)      → front matter
 - ``0.`` or a name containing "front matter" → front matter
-- ``A.``, ``B.`` … (single latin letter)   → appendix
+- ``A.``, ``B.`` / ``a.``, ``b.`` … (single latin letter) → appendix
 - anything else                            → plain (transparent grouping)
+
+Front matter and appendices both use single letters, so they collide on the few
+letters that are also small roman numerals. Front matter is the lowercase roman
+sequence (``i.``, ``ii.``, …); the single lowercase letters that read as front
+matter are just ``i.``, ``v.``, ``x.``. Every other single letter — ``a.``,
+``b.``, … and the large-value roman letters ``c.``/``d.``/``l.``/``m.`` — is an
+appendix label. Appendices sort *after* the main body at every level.
 
 The Chapter/Sub-chapter distinction is contextual: an arabic directory is a
 Sub-chapter when some ancestor directory is itself a chapter or sub-chapter,
@@ -41,9 +48,17 @@ class Role(str, Enum):
 
 _ROMAN_CHARS = set("IVXLCDM")
 
+# The lowercase roman numerals a front-matter sequence realistically reaches as a
+# *single* letter: i (1), v (5), x (10). Every other single lowercase letter is
+# read as an appendix label — including c./d./l./m., whose only roman value
+# (100/500/50/1000) never numbers front matter.
+_FRONT_MATTER_ROMAN = {"i", "v", "x"}
+
 _LOWER_ROMAN = re.compile(r"^[ivxlcdm]+\.(\s|$)")
 _UPPER_ROMAN = re.compile(r"^([IVXLCDM]+)\.(\s|$)")
 _SINGLE_UPPER = re.compile(r"^([A-Z])\.(\s|$)")
+_SINGLE_LOWER = re.compile(r"^([a-z])\.(\s|$)")
+_SINGLE_LETTER = re.compile(r"^([A-Za-z])\.(\s|$)")
 _ARABIC = re.compile(r"^([1-9]\d*)\.")
 _ZERO = re.compile(r"^0\.")
 _PREFIX = re.compile(r"^([0-9A-Za-z]+)\.")
@@ -74,11 +89,18 @@ def _base_kind(name: str) -> str:
     if _ZERO.match(stripped) or "front matter" in stripped.lower():
         return "front_matter"
 
-    if _LOWER_ROMAN.match(stripped):
-        return "lower_roman"
-
     if "appendi" in stripped.lower():
         return "appendix"
+
+    # A single lowercase letter: front matter only for the small romans i./v./x.,
+    # an appendix label for every other letter (a., b., … and c./d./l./m.).
+    single_lower = _SINGLE_LOWER.match(stripped)
+    if single_lower:
+        return "front_matter" if single_lower.group(1) in _FRONT_MATTER_ROMAN else "appendix"
+
+    # Multi-letter lowercase roman (ii., iii., iv., …) is front matter.
+    if _LOWER_ROMAN.match(stripped):
+        return "lower_roman"
 
     roman = _UPPER_ROMAN.match(stripped)
     if roman and len(roman.group(1)) >= 2:
@@ -91,6 +113,26 @@ def _base_kind(name: str) -> str:
         return "arabic"
 
     return "plain"
+
+
+# The role a name implies on its own, with no sibling or ancestor context. Used
+# for files (which are never Parts, and whose single-letter prefix is always an
+# appendix label). Directories go through ``assign_roles`` instead, which adds the
+# contextual Part/appendix and Chapter/Sub-chapter resolution.
+_KIND_ROLE = {
+    "front_matter": Role.FRONT_MATTER,
+    "lower_roman": Role.FRONT_MATTER,
+    "appendix": Role.APPENDIX,
+    "upper_single": Role.APPENDIX,
+    "part_multi": Role.PART,
+    "arabic": Role.PLAIN,
+    "plain": Role.PLAIN,
+}
+
+
+def _role_for_name(name: str) -> Role:
+    """The structural role implied by a file or directory *name* alone."""
+    return _KIND_ROLE.get(_base_kind(name), Role.PLAIN)
 
 
 # ============================================================================
@@ -239,10 +281,15 @@ def file_tiers(rel_path: str, roles: Dict[str, Role]) -> FileTiers:
             tiers.is_front_matter = True
             offset += 1
 
-    # A lowercase-roman front-matter *file* at the root (e.g. "i. Preface.md")
-    # carries no directory tier; classify it from its own name.
-    if not ancestors and _LOWER_ROMAN.match(PurePosixPath(rel_path).name):
-        tiers.is_front_matter = True
+    # A root-level file carries no directory tier, so classify it from its own
+    # name: lowercase-roman front matter ("i. Preface.md") or a single-letter
+    # appendix ("a. The Path Integral.md").
+    if not ancestors:
+        root_role = _role_for_name(PurePosixPath(rel_path).name)
+        if root_role == Role.FRONT_MATTER:
+            tiers.is_front_matter = True
+        elif root_role == Role.APPENDIX:
+            tiers.is_appendix = True
 
     tiers.heading_offset = offset
 
@@ -265,8 +312,16 @@ _TIER_RANK = {
 
 
 def _component_key(name: str, role: Role) -> tuple:
-    """Sort key for one path component: (tier rank, numeric order, alphabetic fallback)."""
+    """Sort key for one path component: (tier rank, order-within-tier, alphabetic fallback)."""
     rank = _TIER_RANK.get(role, 1)
+
+    # Appendix labels order alphabetically by their letter (a. < b. < c.), never by
+    # roman value — c. is the third appendix, not 100.
+    if role == Role.APPENDIX:
+        single = _SINGLE_LETTER.match(name)
+        if single:
+            return (rank, ord(single.group(1).upper()), "")
+        return (rank, 0, name.lower())
 
     roman = _UPPER_ROMAN.match(name)
     if roman:
@@ -280,9 +335,9 @@ def _component_key(name: str, role: Role) -> tuple:
     if arabic:
         return (rank, int(arabic.group(1)), "")
 
-    single = _SINGLE_UPPER.match(name)
+    single = _SINGLE_LETTER.match(name)
     if single:
-        return (rank, ord(single.group(1)), "")
+        return (rank, ord(single.group(1).upper()), "")
 
     return (rank, 0, name.lower())
 
@@ -318,10 +373,9 @@ def structural_sort_key(rel_path: str, roles: Dict[str, Role]) -> tuple:
         keys.append(_component_key(component, role))
         _ = dir_path
 
-    # The file name itself. A lowercase-roman or numbered prefix orders it;
-    # front-matter files (lowercase roman) rank ahead of numbered content.
+    # The file name itself, ranked by the role its own name implies: front-matter
+    # files rank ahead of the numbered body, appendix files after it.
     file_name = path.name
-    file_role = Role.FRONT_MATTER if _LOWER_ROMAN.match(file_name) else Role.PLAIN
-    keys.append(_component_key(file_name, file_role))
+    keys.append(_component_key(file_name, _role_for_name(file_name)))
 
     return tuple(keys)

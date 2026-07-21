@@ -53,11 +53,16 @@ depth implied by where it sits in the tree.
 | `1.`, `2.` (arabic) | Chapter — title page |
 | `1.`, `2.` nested inside a chapter | Sub-chapter — inline heading, +1 heading level |
 | `i.`, `ii.` (lowercase Roman) | front matter |
-| `A.`, `B.` (single letter) | appendix — title page, lettered |
+| `A.`, `B.` or `a.`, `b.` (single letter) | appendix — title page, lettered |
 
 Parts do **not** add a heading level; chapters and sub-chapters do. A single
 Roman letter beside a multi-letter Roman Part (e.g. `I.` next to `II.`) is a
-Part; otherwise a single letter is an appendix.
+Part; otherwise a single letter is an appendix. Front matter and appendices both
+use single letters, so they overlap on the letters that are also roman numerals:
+the lowercase romans a preface realistically reaches (`i.`, `v.`, `x.`) stay
+front matter, while every other single letter — `a.`, `b.`, … and the
+large-value roman letters `c.`/`d.`/`l.`/`m.` — is an appendix. Appendices always
+sort **after** the numbered body, at every level.
 
 ### The `+` and `_` prefixes
 
